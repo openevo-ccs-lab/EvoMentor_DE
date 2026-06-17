@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LehrplanKompass – Biologie 7/8 Thüringen</title>
+<style>
+:root {
+  --bk-str: #0d9488; --bk-str-l: #ccfbf1; --bk-str-m: #5eead4;
+  --bk-stoff: #ea580c; --bk-stoff-l: #ffedd5; --bk-stoff-m: #fb923c;
+  --bk-info: #2563eb; --bk-info-l: #dbeafe; --bk-info-m: #60a5fa;
+  --bk-steu: #7c3aed; --bk-steu-l: #ede9fe; --bk-steu-m: #a78bfa;
+  --bk-ind: #16a34a; --bk-ind-l: #dcfce7; --bk-ind-m: #4ade80;
+  --bg: #f8fafc; --bg2: #ffffff; --bg3: #f1f5f9;
+  --border: #e2e8f0; --border2: #cbd5e1;
+  --txt: #0f172a; --txt2: #475569; --txt3: #94a3b8;
+  --shadow: 0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.08),0 2px 6px rgba(0,0,0,.05);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,.10),0 4px 10px rgba(0,0,0,.06);
+  --r: 6px; --r2: 10px; --r3: 16px;
+  --ease: .2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.6;height:100vh;overflow:hidden}
+
+/* Loading */
+#loading{position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e293b);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:20px}
+#loading .logo{font-size:30px;font-weight:800;color:#fff}.logo span{background:linear-gradient(135deg,#5eead4,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.load-bar{width:260px;height:4px;background:rgba(255,255,255,.1);border-radius:99px;overflow:hidden}
+.load-fill{height:100%;background:linear-gradient(90deg,#5eead4,#60a5fa,#a78bfa);border-radius:99px;animation:lf 2.2s ease-out forwards}
+@keyframes lf{from{width:0}to{width:100%}}
+#loading p{color:rgba(255,255,255,.4);font-size:12px}
+
+/* Error */
+#err{display:none;position:fixed;inset:0;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:9998;padding:40px;text-align:center}
+#err.show{display:flex}
+.err-box{background:#1e293b;color:#94a3b8;padding:14px 20px;border-radius:var(--r2);font-family:monospace;font-size:11px;max-width:580px;text-align:left;width:100%}
+
+/* App Shell */
+#app{display:none;flex-direction:column;height:100vh}
+#app.show{display:flex}
+
+/* Topbar */
+.topbar{height:58px;background:linear-gradient(135deg,#0f172a,#1e293b);display:flex;align-items:center;padding:0 16px;gap:12px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2);z-index:100}
+.tlogo{font-size:17px;font-weight:800;color:#fff;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.tlogo .ic{width:30px;height:30px;background:linear-gradient(135deg,#5eead4,#60a5fa);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.tlogo span{background:linear-gradient(135deg,#5eead4,#60a5fa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tnav{display:flex;align-items:center;gap:3px;flex:1;overflow-x:auto}
+.tnav::-webkit-scrollbar{height:0}
+.nbtn{padding:6px 12px;border:none;background:transparent;color:rgba(255,255,255,.55);border-radius:var(--r);cursor:pointer;font-size:12px;font-weight:500;transition:var(--ease);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.nbtn:hover{background:rgba(255,255,255,.1);color:#fff}
+.nbtn.active{background:rgba(255,255,255,.15);color:#fff}
+.tactions{display:flex;gap:6px;margin-left:8px}
+.btn{padding:6px 13px;border-radius:var(--r);border:none;cursor:pointer;font-size:12px;font-weight:600;transition:var(--ease);display:flex;align-items:center;gap:5px;white-space:nowrap}
+.btn-ghost{background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1px solid rgba(255,255,255,.15)}
+.btn-ghost:hover{background:rgba(255,255,255,.18);color:#fff}
+.btn-primary{background:linear-gradient(135deg,#5eead4,#60a5fa);color:#0f172a}
+.btn-primary:hover{background:linear-gradient(135deg,#2dd4bf,#3b82f6);transform:translateY(-1px);box-shadow:0 4px 12px rgba(96,165,250,.3)}
+.btn-success{background:linear-gradient(135deg,#4ade80,#22c55e);color:#0f172a}
+.btn-success:hover{background:linear-gradient(135deg,#22c55e,#16a34a);transform:translateY(-1px)}
+.btn-warn{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.btn-warn:hover{background:#fde68a}
+.btn-danger{background:#fee2e2;color:#dc2626;border:1px solid #fecaca}
+.btn-danger:hover{background:#fecaca}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+
+/* Content */
+.content{flex:1;overflow:hidden;position:relative}
+.view{display:none;width:100%;height:100%}
+.view.active{display:flex;flex-direction:column}
+
+/* Statusbar */
+.sbar{height:26px;background:#1e293b;display:flex;align-items:center;padding:0 14px;gap:14px;flex-shrink:0}
+.sitem{display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(255,255,255,.38)}
+.sdot{width:6px;height:6px;border-radius:50%;background:#4ade80}
+.sdot.w{background:#fbbf24}.sdot.e{background:#f87171}
+
+/* ─── VIEW 1: NETWORK ─── */
+#vnet{background:var(--bg3);position:relative;overflow:hidden}
+.net-toolbar{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;z-index:10;pointer-events:none;flex-wrap:wrap}
+.net-toolbar>*{pointer-events:auto}
+.ntc{background:#fff;border-radius:var(--r2);padding:7px 11px;display:flex;align-items:center;gap:7px;box-shadow:var(--shadow-md);border:1px solid var(--border)}
+.ntc-lbl{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.5px}
+.tbtn{padding:3px 9px;border-radius:20px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:11px;font-weight:500;color:var(--txt2);transition:var(--ease)}
+.tbtn.on{font-weight:700}
+#nsvg{width:100%;height:100%;cursor:grab}
+#nsvg:active{cursor:grabbing}
+.node-g{cursor:pointer}
+.node-circle{transition:filter .15s}
+
+/* Concept Panel (slide-in) */
+.cpanel{position:absolute;top:0;right:0;width:370px;height:100%;background:#fff;border-left:1px solid var(--border);box-shadow:-4px 0 20px rgba(0,0,0,.08);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);overflow-y:auto;z-index:20}
+.cpanel.open{transform:translateX(0)}
+.cp-head{padding:18px 18px 14px;position:sticky;top:0;background:#fff;border-bottom:1px solid var(--border);z-index:1}
+.cp-close{position:absolute;top:14px;right:14px;width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--txt2);transition:var(--ease)}
+.cp-close:hover{background:#fee2e2;color:#dc2626}
+.cp-body{padding:14px 18px;display:flex;flex-direction:column;gap:13px}
+.ps-title{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px}
+.pdef{font-size:12px;color:var(--txt2);line-height:1.7;background:var(--bg3);padding:10px 12px;border-radius:var(--r);border-left:3px solid}
+.pill-row{display:flex;flex-wrap:wrap;gap:5px}
+.pill{padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;border:1px solid}
+.misc-card{background:#fff7ed;border:1px solid #fed7aa;border-radius:var(--r);padding:9px 11px}
+.misc-w{font-size:11px;color:#c2410c;font-weight:500;margin-bottom:3px}
+.misc-r{font-size:11px;color:#15803d}
+.rel-item{display:flex;align-items:flex-start;gap:7px;padding:7px;border-radius:var(--r);background:var(--bg3);font-size:11px}
+.rel-badge{padding:2px 6px;border-radius:20px;font-size:9px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.lz-chip{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;background:var(--bg3);border:1px solid var(--border);cursor:pointer;transition:var(--ease);display:inline-flex;align-items:center;gap:2px}
+.lz-chip:hover{background:var(--border)}
+.lz-chip.anc{border-style:dashed}
+
+/* ─── VIEW 2: KONZEPTDETAIL ─── */
+#vdetail{background:var(--bg)}
+.det-layout{display:flex;height:100%;overflow:hidden}
+.det-nav{width:250px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);overflow-y:auto;padding:12px 0}
+.det-nav::-webkit-scrollbar{width:4px}.det-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.dn-group{margin-bottom:4px}
+.dn-item{padding:7px 14px;cursor:pointer;transition:var(--ease);border-left:3px solid transparent;display:flex;align-items:center;gap:7px}
+.dn-item:hover{background:var(--bg3)}
+.dn-item.active{border-left-color:currentColor;background:var(--bg3)}
+.dn-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.dn-label{font-size:12px;font-weight:500;color:var(--txt)}
+.dn-item.active .dn-label{font-weight:700}
+.dn-sub{font-size:10px;color:var(--txt3)}
+.det-main{flex:1;overflow-y:auto;padding:22px}
+.det-main::-webkit-scrollbar{width:6px}.det-main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.dcard{background:#fff;border-radius:var(--r3);border:1px solid var(--border);overflow:hidden;margin-bottom:18px;box-shadow:var(--shadow)}
+.dcard-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);position:relative}
+.dcard-head::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:currentColor}
+.dcard-title{font-size:19px;font-weight:800;color:var(--txt);margin-bottom:3px;letter-spacing:-.2px}
+.dcard-sub{font-size:11px;color:var(--txt3);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.dcard-body{padding:18px 22px}
+.dsec{margin-bottom:20px}
+.dsec:last-child{margin-bottom:0}
+.dsec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--txt3);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.dsec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.def-box{background:linear-gradient(135deg,var(--bg3),#fff);border:1px solid var(--border);border-radius:var(--r2);padding:14px;font-size:13px;line-height:1.8;color:var(--txt2);border-left:4px solid}
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:7px}
+.pcard{padding:9px 11px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);font-size:11px;font-weight:600;color:var(--txt);display:flex;align-items:center;gap:7px}
+.pcard-ic{width:26px;height:26px;border-radius:var(--r);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.mflip{background:#fff;border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:7px}
+.mflip:hover{box-shadow:var(--shadow)}
+.mf-head{padding:9px 12px;display:flex;align-items:flex-start;gap:7px;cursor:pointer}
+.mf-ic{width:18px;height:18px;border-radius:50%;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.mf-txt{font-size:12px;color:var(--txt);line-height:1.5}
+.mf-body{padding:0 12px 10px 37px;display:none}
+.mf-body.open{display:block}
+.mf-ok{font-size:12px;color:#15803d;background:#f0fdf4;padding:7px;border-radius:var(--r);margin-bottom:5px;border:1px solid #bbf7d0;line-height:1.5}
+.mf-hint{font-size:11px;color:#92400e;background:#fffbeb;padding:6px;border-radius:var(--r);border:1px solid #fde68a;line-height:1.5}
+.dq{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:9px 12px;font-size:12px;color:var(--txt);line-height:1.6;display:flex;gap:7px;align-items:flex-start;margin-bottom:5px}
+.dq-n{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;color:#fff}
+.conn-item{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border);margin-bottom:5px}
+.conn-type{padding:2px 7px;border-radius:20px;font-size:9px;font-weight:700;white-space:nowrap;flex-shrink:0}
+.conn-desc{font-size:11px;color:var(--txt2);line-height:1.5}
+.repr-step{display:flex;align-items:flex-start;gap:9px;padding:7px 11px;border-radius:var(--r);background:var(--bg3);border:1px solid var(--border);margin-bottom:4px}
+.repr-n{width:20px;height:20px;border-radius:50%;background:var(--border2);color:var(--txt2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.net-link-btn{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1.5px solid;cursor:pointer;transition:var(--ease);background:#fff}
+.net-link-btn:hover{filter:brightness(.95)}
+
+/* ─── VIEW 3: SEQUENCE PLANNER ─── */
+#vplan{background:var(--bg);flex-direction:row!important}
+.plan-sidebar{width:290px;flex-shrink:0;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;height:100%}
+.sb-head{padding:13px 14px 10px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#f8fafc,#f1f5f9)}
+.sb-title{font-size:12px;font-weight:700;margin-bottom:7px}
+.sb-search{width:100%;padding:6px 9px 6px 28px;border:1.5px solid var(--border);border-radius:var(--r);font-size:12px;background:#fff;outline:none;transition:var(--ease)}
+.sb-search:focus{border-color:var(--bk-info)}
+.sw{position:relative}
+.si{position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--txt3);font-size:12px;pointer-events:none}
+.sb-filters{padding:7px 10px;border-bottom:1px solid var(--border);display:flex;flex-wrap:wrap;gap:3px}
+.fc{padding:2px 7px;border-radius:20px;font-size:10px;font-weight:500;border:1.5px solid var(--border);cursor:pointer;transition:var(--ease);background:#fff;color:var(--txt2)}
+.fc.on{color:#fff;border-color:transparent}
+.lz-list{flex:1;overflow-y:auto;padding:7px}
+.lz-list::-webkit-scrollbar{width:4px}.lz-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.lzcard{padding:7px 9px;border-radius:var(--r);border:1.5px solid var(--border);background:#fff;margin-bottom:4px;cursor:grab;transition:var(--ease);user-select:none}
+.lzcard:active{cursor:grabbing}
+.lzcard:hover{border-color:var(--border2);box-shadow:var(--shadow);transform:translateY(-1px)}
+.lzcard.placed{opacity:.38;cursor:default}
+.lzcard.placed:hover{transform:none}
+.lzc-id{font-size:9px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.lzc-title{font-size:11px;font-weight:600;color:var(--txt);line-height:1.3;margin-bottom:4px}
+.lzc-meta{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.bkdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mpill{padding:1px 5px;border-radius:20px;font-size:9px;font-weight:600;background:var(--bg3);color:var(--txt3);border:1px solid var(--border)}
+.astar{color:#f59e0b;font-size:9px}
+
+/* Planner main */
+.plan-main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.plan-head{padding:10px 14px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.ph-title{font-size:13px;font-weight:700}
+.pstats{display:flex;gap:8px;margin-left:auto}
+.stat-b{display:flex;align-items:center;gap:4px;padding:3px 9px;background:var(--bg3);border-radius:var(--r);font-size:11px;color:var(--txt2);border:1px solid var(--border)}
+.stat-b strong{color:var(--txt)}
+
+/* Plan mode tabs */
+.plan-mode-bar{padding:8px 14px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;gap:6px;align-items:center;flex-shrink:0;flex-wrap:wrap}
+.mode-btn{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:11px;font-weight:600;color:var(--txt2);transition:var(--ease)}
+.mode-btn.active{background:var(--txt);color:#fff;border-color:var(--txt)}
+
+/* Emphasis sliders */
+.emphasis-bar{padding:8px 14px;background:#fff;border-bottom:1px solid var(--border);flex-shrink:0;display:none}
+.emphasis-bar.show{display:block}
+.emph-title{font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.emph-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.emph-item{display:flex;align-items:center;gap:8px}
+.emph-label{font-size:11px;font-weight:600;min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.emph-range{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border2);outline:none}
+.emph-range::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:currentColor;cursor:pointer}
+.emph-val{font-size:11px;font-weight:700;min-width:28px;text-align:right}
+
+/* Timeline */
+.timeline-wrap{flex:1;overflow:auto;padding:14px}
+.timeline-wrap::-webkit-scrollbar{width:6px;height:6px}.timeline-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.yr-block{margin-bottom:18px}
+.yr-label{font-size:12px;font-weight:700;color:var(--txt);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.yr-badge{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#1d4ed8}
+
+/* Quarter/Custom mode grids */
+.quarters-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.quarter-col{background:#fff;border-radius:var(--r2);border:1.5px solid var(--border);min-height:170px;transition:border-color .15s,box-shadow .15s}
+.quarter-col.drag-over{border-color:var(--bk-info);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.q-head{padding:9px 11px 7px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.q-name{font-size:11px;font-weight:700;color:var(--txt2)}
+.q-count{font-size:9px;font-weight:600;color:var(--txt3);background:var(--bg3);padding:1px 5px;border-radius:20px}
+.q-bkbar{display:flex;height:3px;border-radius:2px;overflow:hidden;margin:3px 11px 0}
+.q-body{padding:6px;min-height:100px;display:flex;flex-direction:column;gap:3px}
+.q-hours{font-size:9px;color:var(--txt3);text-align:center;padding:2px;border-top:1px dashed var(--border);margin-top:2px}
+.placed-card{padding:5px 7px;border-radius:4px;border:1.5px solid;background:#fff;display:flex;align-items:flex-start;gap:5px;position:relative;transition:var(--ease)}
+.placed-card:hover{box-shadow:var(--shadow)}
+.pc-title{font-size:10px;font-weight:500;color:var(--txt);flex:1;line-height:1.3}
+.pc-rm{width:14px;height:14px;border-radius:50%;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--txt3);flex-shrink:0;transition:var(--ease)}
+.pc-rm:hover{background:#fee2e2;color:#dc2626}
+.wflag{font-size:8px;background:#fef3c7;color:#92400e;padding:1px 4px;border-radius:3px;border:1px solid #fde68a;font-weight:700}
+
+/* Custom lessons grid */
+.lessons-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.lesson-box{background:#fff;border-radius:var(--r2);border:1.5px solid var(--border);overflow:hidden;min-height:90px;transition:border-color .15s,box-shadow .15s}
+.lesson-box.drag-over{border-color:var(--bk-info);box-shadow:0 0 0 2px rgba(37,99,235,.1)}
+.lesson-box.has-content{border-color:var(--border2)}
+.lb-head{padding:5px 8px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:4px}
+.lb-num{font-size:9px;font-weight:700;color:var(--txt3)}
+.lb-name-input{flex:1;border:none;background:transparent;font-size:10px;font-weight:600;color:var(--txt);outline:none;width:100%;min-width:0}
+.lb-name-input::placeholder{color:var(--txt3)}
+.lb-body{padding:5px 6px;min-height:55px;display:flex;flex-direction:column;gap:2px}
+.lb-add-hint{font-size:9px;color:var(--txt3);text-align:center;padding:4px;opacity:.6}
+.lb-lz{padding:3px 5px;border-radius:3px;border:1px solid;background:#fff;display:flex;align-items:center;gap:3px}
+.lb-lz-txt{font-size:9px;font-weight:500;flex:1;line-height:1.2}
+.lb-rm{width:12px;height:12px;border-radius:50%;border:none;background:transparent;cursor:pointer;font-size:8px;color:var(--txt3);flex-shrink:0;transition:var(--ease);display:flex;align-items:center;justify-content:center}
+.lb-rm:hover{background:#fee2e2;color:#dc2626}
+
+/* Warnings panel */
+.warns-panel{background:#fffbeb;border-top:1px solid #fde68a;padding:8px 14px;flex-shrink:0;max-height:110px;overflow-y:auto;display:none}
+.warns-panel.show{display:block}
+.w-head{font-size:10px;font-weight:700;color:#92400e;margin-bottom:4px;display:flex;align-items:center;gap:4px}
+.w-item{display:flex;align-items:flex-start;gap:5px;font-size:10px;color:#78350f;margin-bottom:3px;padding:3px 7px;background:#fff;border-radius:3px;border:1px solid #fde68a}
+
+/* Auto-generate panel */
+.autogen-panel{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #bae6fd;border-radius:var(--r2);padding:12px 14px;margin:8px 14px;flex-shrink:0;display:none}
+.autogen-panel.show{display:block}
+.ag-title{font-size:11px;font-weight:700;color:#0369a1;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ag-opts{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.ag-opt{display:flex;flex-direction:column;gap:3px}
+.ag-opt label{font-size:10px;font-weight:600;color:var(--txt2)}
+.ag-select{padding:5px 8px;border:1.5px solid var(--border);border-radius:var(--r);font-size:11px;outline:none;background:#fff}
+
+/* ─── VIEW 4: SEQUENCE ANALYSIS ─── */
+#vanalyze{background:var(--bg);overflow-y:auto;padding:22px}
+.az-head{margin-bottom:20px}
+.az-title{font-size:21px;font-weight:800;color:var(--txt);margin-bottom:3px;letter-spacing:-.2px}
+.az-sub{color:var(--txt2);font-size:12px}
+.score-card{background:#fff;border-radius:var(--r3);border:1px solid var(--border);padding:24px;display:flex;align-items:center;gap:24px;margin-bottom:20px;box-shadow:var(--shadow-md);position:relative;overflow:hidden}
+.sc-circle{width:96px;height:96px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0}
+.sc-num{font-size:30px;font-weight:900;line-height:1}
+.sc-lbl{font-size:9px;font-weight:600;color:var(--txt3);text-transform:uppercase}
+.sc-detail{flex:1}
+.sc-title{font-size:17px;font-weight:700;margin-bottom:3px}
+.sc-desc{font-size:12px;color:var(--txt2);margin-bottom:10px}
+.sc-bar{height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.sc-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.find-group{background:#fff;border-radius:var(--r3);border:1px solid var(--border);margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow)}
+.fg-head{padding:12px 16px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--border);background:var(--bg3)}
+.fg-sev{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sev-c{background:#ef4444}.sev-a{background:#f59e0b}.sev-s{background:#3b82f6}.sev-o{background:#22c55e}
+.fg-title{font-size:12px;font-weight:700}
+.fg-count{margin-left:auto;font-size:10px;font-weight:600;padding:1px 7px;border-radius:20px;background:#fff;border:1px solid var(--border);color:var(--txt2)}
+.find-item{padding:11px 16px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:flex-start}
+.find-item:last-child{border-bottom:none}
+.fi-icon{font-size:15px;flex-shrink:0;margin-top:1px}
+.fi-c{flex:1}
+.fi-title{font-size:12px;font-weight:600;margin-bottom:2px}
+.fi-desc{font-size:11px;color:var(--txt2);line-height:1.5}
+.fi-refs{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
+.fi-action{margin-top:7px}
+.accept-btn{padding:4px 10px;border-radius:20px;border:1.5px solid #22c55e;background:#f0fdf4;color:#15803d;cursor:pointer;font-size:10px;font-weight:700;transition:var(--ease)}
+.accept-btn:hover{background:#dcfce7}
+.accept-btn.done{background:#dcfce7;cursor:default;opacity:.6}
+.bk-dist-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.bkd-label{font-size:11px;font-weight:600;min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bkd-bar-wrap{flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.bkd-bar{height:100%;border-radius:3px;transition:width .8s ease}
+.bkd-val{font-size:10px;color:var(--txt3);min-width:40px;text-align:right}
+.qheat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.qheat-cell{text-align:center;padding:10px 6px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)}
+.qheat-n{font-size:20px;font-weight:900}
+.qheat-l{font-size:9px;color:var(--txt3)}
+
+/* ─── VIEW 5: EDITOR ─── */
+#veditor{background:var(--bg);flex-direction:row!important}
+.ed-toolbar{padding:10px 14px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;flex-shrink:0}
+.ed-layout{flex:1;display:flex;overflow:hidden}
+.ed-list{width:300px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:#fff}
+.ed-list::-webkit-scrollbar{width:4px}.ed-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.eli{padding:9px 13px;border-bottom:1px solid var(--border);cursor:pointer;transition:var(--ease);display:flex;align-items:center;gap:7px}
+.eli:hover{background:var(--bg3)}
+.eli.active{background:var(--bg3);border-left:3px solid currentColor}
+.eli-title{font-size:11px;font-weight:600;color:var(--txt)}
+.eli-sub{font-size:9px;color:var(--txt3);margin-top:1px}
+.mod-badge{padding:1px 5px;background:#fef3c7;color:#92400e;border-radius:20px;font-size:8px;font-weight:700;margin-left:auto;flex-shrink:0}
+.ed-detail{flex:1;overflow-y:auto;padding:18px}
+.ed-detail::-webkit-scrollbar{width:6px}.ed-detail::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.efsec{background:#fff;border-radius:var(--r2);border:1px solid var(--border);padding:14px 18px;margin-bottom:14px}
+.efs-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--txt3);margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid var(--border)}
+.fld{margin-bottom:10px}
+.flabel{display:block;font-size:10px;font-weight:600;color:var(--txt2);margin-bottom:3px;text-transform:uppercase;letter-spacing:.3px}
+.finput{width:100%;padding:7px 9px;border:1.5px solid var(--border);border-radius:var(--r);font-size:12px;outline:none;transition:var(--ease);background:#fff;font-family:inherit}
+.finput:focus{border-color:var(--bk-info);box-shadow:0 0 0 2px rgba(37,99,235,.08)}
+.finput.mod{border-color:#f59e0b;background:#fffbeb}
+textarea.finput{resize:vertical;min-height:72px;line-height:1.6}
+.frange-row{display:flex;align-items:center;gap:9px}
+.frange{flex:1;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border2);outline:none}
+.frange::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:currentColor;cursor:pointer}
+.frange-val{font-size:12px;font-weight:700;min-width:30px;text-align:right}
+.anno{background:#fffbeb;border:1.5px dashed #fcd34d;border-radius:var(--r);padding:7px 9px;margin-top:7px}
+.anno-lbl{font-size:9px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px}
+textarea.anno-in{width:100%;border:none;background:transparent;font-size:11px;color:#78350f;outline:none;resize:vertical;min-height:44px;font-family:inherit;line-height:1.6}
+
+/* Shared utilities */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 20px;text-align:center;color:var(--txt3);gap:10px}
+.empty-icon{font-size:44px}.empty-title{font-size:15px;font-weight:700;color:var(--txt2)}.empty-desc{font-size:12px;max-width:300px}
+.divider{height:1px;background:var(--border);margin:10px 0}
+.flex{display:flex}.items-center{align-items:center}.gap-6{gap:6px}.wrap{flex-wrap:wrap}
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* Toast */
+#toast-c{position:fixed;bottom:18px;right:18px;display:flex;flex-direction:column;gap:7px;z-index:9999}
+.toast{padding:9px 14px;background:#1e293b;color:#fff;border-radius:var(--r2);font-size:12px;font-weight:500;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:7px;animation:tin .28s ease;max-width:340px}
+.toast.success{background:#15803d}.toast.error{background:#dc2626}.toast.warning{background:#d97706}
+@keyframes tin{from{transform:translateX(110%);opacity:0}to{transform:none;opacity:1}}
+@keyframes tout{from{transform:none;opacity:1}to{transform:translateX(110%);opacity:0}}
+.toast.hiding{animation:tout .28s forwards}
+
+/* Modal */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);z-index:8000;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.open{display:flex}
+.modal{background:#fff;border-radius:var(--r3);box-shadow:var(--shadow-lg);max-width:580px;width:100%;max-height:80vh;overflow-y:auto;animation:min .28s ease}
+@keyframes min{from{transform:scale(.95) translateY(8px);opacity:0}to{transform:none;opacity:1}}
+.mhd{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.mhd-title{font-size:16px;font-weight:700}
+.mbd{padding:18px 22px}
+.mft{padding:12px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:7px}
+.mclose{width:26px;height:26px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:var(--ease)}
+.mclose:hover{background:#fee2e2;color:#dc2626}
+.exp-opt{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--r2);cursor:pointer;transition:var(--ease);background:#fff;margin-bottom:8px}
+.exp-opt:hover{border-color:var(--border2);box-shadow:var(--shadow);background:var(--bg3)}
+.exp-ic{width:42px;height:42px;border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.exp-info{flex:1}
+.exp-title{font-size:13px;font-weight:700}
+.exp-desc{font-size:11px;color:var(--txt2);margin-top:1px}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="logo">Lehrplan<span>Kompass</span></div>
+  <div class="load-bar"><div class="load-fill"></div></div>
+  <p>Lade Datensätze …</p>
+</div>
+
+<div id="err">
+  <div style="font-size:40px">⚠️</div>
+  <h2 style="color:#dc2626;font-size:20px">Datensatz nicht geladen</h2>
+  <p style="color:var(--txt2);max-width:440px;text-align:center">Bitte JSON-Dateien im selben Verzeichnis ablegen und einen lokalen HTTP-Server starten (z. B. <code>python -m http.server</code>).</p>
+  <div class="err-box" id="err-detail">–</div>
+  <button class="btn btn-primary" onclick="location.reload()">🔄 Erneut versuchen</button>
+</div>
+
+<div id="app">
+  <nav class="topbar">
+    <div class="tlogo"><div class="ic">🧭</div>Lehrplan<span>Kompass</span></div>
+    <div class="tnav">
+      <button class="nbtn active" data-v="net" onclick="sv('net')"><span>🕸️</span>Konzeptnetz</button>
+      <button class="nbtn" data-v="detail" onclick="sv('detail')"><span>🔍</span>Konzeptdetail</button>
+      <button class="nbtn" data-v="plan" onclick="sv('plan')"><span>📅</span>Sequenzplaner</button>
+      <button class="nbtn" data-v="analyze" onclick="sv('analyze')"><span>📊</span>Sequenzanalyse</button>
+      <button class="nbtn" data-v="editor" onclick="sv('editor')"><span>✏️</span>Datensatz-Editor</button>
+    </div>
+    <div class="tactions">
+      <button class="btn btn-ghost" onclick="openModal('exp-modal')">📤 Exportieren</button>
+    </div>
+  </nav>
+
+  <div class="content">
+    <!-- VIEW: NETWORK -->
+    <div class="view active" id="vnet">
+      <div style="position:relative;flex:1;overflow:hidden;">
+        <div class="net-toolbar">
+          <div class="ntc">
+            <span class="ntc-lbl">Ebenen</span>
+            <button class="tbtn on" id="nt-e1" onclick="setNetMode('e1')">Basiskonzepte</button>
+            <button class="tbtn" id="nt-e2" onclick="setNetMode('e2')">Teilkonzepte</button>
+            <button class="tbtn" id="nt-both" onclick="setNetMode('both')">BK+TK</button>
+            <button class="tbtn" id="nt-all" onclick="setNetMode('all')">+ Lernziele</button>
+          </div>
+          <div class="ntc">
+            <span class="ntc-lbl">Kanten</span>
+            <button class="tbtn on" id="nt-edges" onclick="toggleEdges()">Beziehungen</button>
+          </div>
+          <div class="ntc" style="margin-left:auto;background:rgba(255,255,255,.9)">
+            <span style="font-size:10px;color:var(--txt3)">Klicken · Scrollen · Ziehen</span>
+          </div>
+        </div>
+        <svg id="nsvg"></svg>
+        <div class="cpanel" id="cpanel">
+          <div class="cp-head">
+            <button class="cp-close" onclick="closeCP()">✕</button>
+            <div id="cp-title" style="font-size:15px;font-weight:700;padding-right:32px;line-height:1.3">–</div>
+            <div id="cp-sub" style="font-size:10px;color:var(--txt3);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">–</div>
+          </div>
+          <div class="cp-body" id="cp-body"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: DETAIL -->
+    <div class="view" id="vdetail">
+      <div class="det-layout">
+        <div class="det-nav" id="det-nav"></div>
+        <div class="det-main" id="det-main">
+          <div class="empty-state">
+            <div class="empty-icon">🔍</div>
+            <div class="empty-title">Basiskonzept wählen</div>
+            <div class="empty-desc">Wählen Sie links ein Konzept zur vollständigen Detailansicht.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: PLANNER -->
+    <div class="view" id="vplan">
+      <div class="plan-sidebar">
+        <div class="sb-head">
+          <div class="sb-title">🎯 Lernziele</div>
+          <div class="sw">
+            <span class="si">🔍</span>
+            <input class="sb-search" type="text" placeholder="Suchen …" oninput="filterLZ(this.value)" id="lz-srch">
+          </div>
+        </div>
+        <div class="sb-filters" id="sb-filters"></div>
+        <div class="lz-list" id="lz-list"></div>
+      </div>
+      <div class="plan-main">
+        <div class="plan-head">
+          <span class="ph-title">📅 Jahresplanung Klassen 7/8</span>
+          <div class="pstats">
+            <div class="stat-b">Platziert: <strong id="pc">0</strong></div>
+            <div class="stat-b">Gesamt: <strong id="tc">0</strong></div>
+            <div class="stat-b" style="color:#d97706">⚠️ <strong id="wc">0</strong></div>
+          </div>
+          <button class="btn btn-danger" style="margin-left:6px" onclick="clearPlan()">🗑️ Reset</button>
+        </div>
+        <!-- Mode bar -->
+        <div class="plan-mode-bar">
+          <span style="font-size:10px;font-weight:700;color:var(--txt3)">MODUS:</span>
+          <button class="mode-btn active" id="mode-quarter" onclick="setPlanMode('quarter')">Quartale</button>
+          <button class="mode-btn" id="mode-custom" onclick="setPlanMode('custom')">Einzelstunden (60/Jahr)</button>
+          <span style="margin-left:8px;font-size:10px;font-weight:700;color:var(--txt3)">AUTO-GENERIERUNG:</span>
+          <button class="mode-btn" onclick="toggleAutoGen()">⚡ Automatisch planen</button>
+          <span style="margin-left:8px;font-size:10px;font-weight:700;color:var(--txt3)">SCHWERPUNKTE:</span>
+          <button class="mode-btn" id="emph-toggle" onclick="toggleEmphasis()">🎯 Gewichtung</button>
+        </div>
+        <!-- Emphasis sliders -->
+        <div class="emphasis-bar" id="emph-bar">
+          <div class="emph-title">🎯 Relative Schwerpunkte der Basiskonzepte <span style="font-size:10px;font-weight:400;color:var(--txt3)">(beeinflusst Auto-Generierung und Vorschläge)</span></div>
+          <div class="emph-grid" id="emph-grid"></div>
+        </div>
+        <!-- Auto-gen panel -->
+        <div class="autogen-panel" id="autogen-panel">
+          <div class="ag-title">⚡ Sequenz automatisch generieren</div>
+          <div class="ag-opts">
+            <div class="ag-opt">
+              <label>Strategie</label>
+              <select class="ag-select" id="ag-strat">
+                <option value="linear">Lineare Reihenfolge (Lehrplan)</option>
+                <option value="bk">Optimal nach Basiskonzepten</option>
+                <option value="interleave">Maximales Interleaving</option>
+                <option value="spiral">Spiral-Curriculum</option>
+                <option value="prereq">Voraussetzungsoptimiert</option>
+              </select>
+            </div>
+            <div class="ag-opt">
+              <label>Ziel-Basiskonzept (Fokus)</label>
+              <select class="ag-select" id="ag-focus">
+                <option value="">Kein Fokus</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" onclick="autoGenerate()" style="align-self:flex-end">▶ Generieren</button>
+            <button class="btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--txt2);align-self:flex-end" onclick="toggleAutoGen()">✕</button>
+          </div>
+        </div>
+        <div class="timeline-wrap" id="timeline-wrap"></div>
+        <div class="warns-panel" id="warns-panel">
+          <div class="w-head">⚠️ Sequenzhinweise</div>
+          <div id="warns-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: ANALYZE -->
+    <div class="view" id="vanalyze">
+      <div id="az-content" style="max-width:880px;margin:0 auto;width:100%">
+        <div class="empty-state" style="padding-top:70px">
+          <div class="empty-icon">📊</div>
+          <div class="empty-title">Keine Lernziele platziert</div>
+          <div class="empty-desc">Planen Sie zuerst Lernziele im Sequenzplaner, dann erscheint hier die Qualitätsanalyse.</div>
+          <button class="btn btn-primary" style="margin-top:8px" onclick="sv('plan')">→ Zum Sequenzplaner</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: EDITOR -->
+    <div class="view" id="veditor">
+      <div class="ed-toolbar">
+        <strong style="font-size:12px;color:var(--txt2)">✏️ Datensatz-Editor</strong>
+        <div style="flex:1"></div>
+        <button class="btn btn-danger" onclick="resetAllEdits()">↺ Alles zurücksetzen</button>
+        <button class="btn btn-success" onclick="saveEdits()">💾 Speichern</button>
+      </div>
+      <div class="ed-layout">
+        <div class="ed-list" id="ed-list"></div>
+        <div class="ed-detail" id="ed-detail">
+          <div class="empty-state" style="padding-top:50px">
+            <div class="empty-icon">✏️</div>
+            <div class="empty-title">Eintrag wählen</div>
+            <div class="empty-desc">Wählen Sie links ein Konzept zur Bearbeitung.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sbar">
+    <div class="sitem"><div class="sdot" id="ssdot"></div><span id="sstext">Lade …</span></div>
+    <div class="sitem">BK: <span id="s-bk">–</span></div>
+    <div class="sitem">LZ: <span id="s-lz">–</span></div>
+    <div class="sitem" id="s-mod" style="display:none"><div class="sdot w"></div>Nicht gespeicherte Änderungen</div>
+    <div style="flex:1"></div>
+    <div class="sitem">Thüringen · Gymnasium · Kl. 7–8 · Biologie</div>
+  </div>
+</div>
+
+<div id="toast-c"></div>
+
+<!-- Export Modal -->
+<div class="modal-ov" id="exp-modal">
+  <div class="modal">
+    <div class="mhd"><div><div class="mhd-title">📤 Sequenzplan exportieren</div><div style="font-size:11px;color:var(--txt3);margin-top:2px">Wählen Sie das Exportformat</div></div><button class="mclose" onclick="closeModal('exp-modal')">✕</button></div>
+    <div class="mbd">
+      <div class="exp-opt" onclick="exportJSON()"><div class="exp-ic" style="background:#dbeafe">📋</div><div class="exp-info"><div class="exp-title">JSON-Export</div><div class="exp-desc">Vollständiger maschinenlesbarer Datensatz mit Sequenzplan und Analyse</div></div><span style="font-size:18px">→</span></div>
+      <div class="exp-opt" onclick="exportDOCX()"><div class="exp-ic" style="background:#dcfce7">📄</div><div class="exp-info"><div class="exp-title">Word-Dokument (.docx)</div><div class="exp-desc">Professioneller Bericht mit Sequenzübersicht, Analyse und didaktischen Hinweisen</div></div><span style="font-size:18px">→</span></div>
+    </div>
+    <div class="mft"><button class="btn" style="background:var(--bg3);border:1px solid var(--border);color:var(--txt2)" onclick="closeModal('exp-modal')">Abbrechen</button></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   DATA PATHS – adjust if files are in different locations
+   Both JSON files must be in the same directory as this HTML,
+   or update the paths below accordingly.
+============================================================ */
+const PATHS = {
+  bk: './basiskonzepte.json',       // ← Basiskonzepte-Datei (v3.0)
+  lz: './lernziele_gy78.json'        // ← Lernziele-Datei (v2.0)
+};
+
+/* ─── GLOBALS ─── */
+let BK=[], LZ=[], SEQ={}, EDITS={}, ANNOTS={}, EMPH={};
+let netMode='e1', showEdges=true, netT={x:0,y:0,s:1};
+let netNodes=[], netEdges=[];
+let planMode='quarter', customLessons={};
+let acceptedFixes=new Set();
+
+const BKC={
+  bk_struktur_funktion:{m:'#0d9488',l:'#ccfbf1',mid:'#5eead4'},
+  bk_stoff_energie_umwandlung:{m:'#ea580c',l:'#ffedd5',mid:'#fb923c'},
+  bk_information_kommunikation:{m:'#2563eb',l:'#dbeafe',mid:'#60a5fa'},
+  bk_steuerung_regelung:{m:'#7c3aed',l:'#ede9fe',mid:'#a78bfa'},
+  bk_individuelle_evolutive_entwicklung:{m:'#16a34a',l:'#dcfce7',mid:'#4ade80'}
+};
+// Add sub-concept colors
+const BKC_ALL={...BKC,
+  bk_struktur_funktion__struktur:{m:'#0d9488',l:'#ccfbf1',mid:'#5eead4'},
+  bk_struktur_funktion__funktion:{m:'#0f766e',l:'#ccfbf1',mid:'#2dd4bf'},
+  bk_stoff_energie_umwandlung__stoff:{m:'#ea580c',l:'#ffedd5',mid:'#fb923c'},
+  bk_stoff_energie_umwandlung__energie:{m:'#c2410c',l:'#ffedd5',mid:'#f97316'},
+  bk_information_kommunikation__information:{m:'#2563eb',l:'#dbeafe',mid:'#60a5fa'},
+  bk_information_kommunikation__kommunikation:{m:'#1d4ed8',l:'#dbeafe',mid:'#3b82f6'},
+  bk_steuerung_regelung__steuerung:{m:'#7c3aed',l:'#ede9fe',mid:'#a78bfa'},
+  bk_steuerung_regelung__regelung:{m:'#6d28d9',l:'#ede9fe',mid:'#8b5cf6'},
+  bk_individuelle_evolutive_entwicklung__individuell:{m:'#16a34a',l:'#dcfce7',mid:'#4ade80'},
+  bk_individuelle_evolutive_entwicklung__evolutiv:{m:'#15803d',l:'#dcfce7',mid:'#22c55e'}
+};
+const BKICONS={bk_struktur_funktion:'🏗️',bk_stoff_energie_umwandlung:'⚡',bk_information_kommunikation:'📡',bk_steuerung_regelung:'⚙️',bk_individuelle_evolutive_entwicklung:'🌱'};
+const QUARTERS=[{y:'7',q:'Q1'},{y:'7',q:'Q2'},{y:'7',q:'Q3'},{y:'7',q:'Q4'},{y:'8',q:'Q1'},{y:'8',q:'Q2'},{y:'8',q:'Q3'},{y:'8',q:'Q4'}];
+const QK=(y,q)=>`${y}-${q}`;
+const LESSONS_PER_YEAR=60;
+const LESSONS_PER_QUARTER=15;
+
+function gc(id){return BKC_ALL[id]||{m:'#64748b',l:'#f1f5f9',mid:'#94a3b8'}}
+function esc(s){if(typeof s!=='string')return String(s||'');return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function lzTitle(id){const l=LZ.find(x=>x.id===id);return l?(l.kurzbezeichnung||l.originaltext||id):id}
+function bkShort(id){const map={bk_struktur_funktion:'Str/Fkt',bk_stoff_energie_umwandlung:'Stoff/E',bk_information_kommunikation:'Info/K',bk_steuerung_regelung:'Steu/R',bk_individuelle_evolutive_entwicklung:'Ind/Evo'};for(const[k,v]of Object.entries(map)){if(id&&id.startsWith(k)){return v+(id.includes('__')?' TK':'')}}return id||'?'}
+function toast(msg,type='',dur=3400){const el=document.createElement('div');el.className=`toast ${type}`;const ic={success:'✅',error:'❌',warning:'⚠️','':'ℹ️'};el.innerHTML=`<span>${ic[type]||ic['']}</span><span>${msg}</span>`;document.getElementById('toast-c').appendChild(el);setTimeout(()=>{el.classList.add('hiding');setTimeout(()=>el.remove(),300)},dur)}
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function qkFull(year,q){return{year,q,key:QK(year,q),label:`Kl.${year}·${q}`}}
+function allPlaced(){const ids=[];Object.values(SEQ).forEach(v=>{if(Array.isArray(v))v.forEach(id=>ids.push(id))});return ids}
+function findQforLZ(id){for(const[k,v]of Object.entries(SEQ)){if(Array.isArray(v)&&v.includes(id))return k}return null}
+function getQIdx(key){return QUARTERS.findIndex(q=>QK(q.y,q.q)===key)}
+
+/* ─── LOAD ─── */
+async function init(){
+  try{
+    document.querySelector('#loading p').textContent='Lade Basiskonzepte …';
+    let bkR,lzR;
+    try{
+      [bkR,lzR]=await Promise.all([fetch(PATHS.bk),fetch(PATHS.lz)]);
+      if(!bkR.ok)throw new Error(`HTTP ${bkR.status}: ${PATHS.bk}`);
+      if(!lzR.ok)throw new Error(`HTTP ${lzR.status}: ${PATHS.lz}`);
+    }catch(fe){
+      throw new Error(`Datei-Ladefehler: ${fe.message}\n\nTipp: python -m http.server 8000 im Verzeichnis starten.`);
+    }
+    document.querySelector('#loading p').textContent='Verarbeite …';
+    const bkData=await bkR.json();
+    const lzData=await lzR.json();
+    if(!bkData.basiskonzepte||!Array.isArray(bkData.basiskonzepte))throw new Error('Ungültige BK-Datei: Feld "basiskonzepte" fehlt.');
+    if(!lzData.lernziele||!Array.isArray(lzData.lernziele))throw new Error('Ungültige LZ-Datei: Feld "lernziele" fehlt.');
+    BK=bkData.basiskonzepte;
+    LZ=lzData.lernziele;
+    // Init state
+    getAllConcepts().forEach(c=>{EDITS[c.id]={};ANNOTS[c.id]={}});
+    // Init emphasis (default 50%)
+    BK.filter(b=>b.ebene===1||!b.ebene).forEach(b=>{EMPH[b.id]=50});
+    // Load saved
+    try{const s=localStorage.getItem('lk_seq');if(s)SEQ=JSON.parse(s)}catch(e){}
+    try{const c=localStorage.getItem('lk_custom');if(c)customLessons=JSON.parse(c)}catch(e){}
+    await new Promise(r=>setTimeout(r,200));
+    document.getElementById('loading').style.display='none';
+    document.getElementById('app').classList.add('show');
+    document.getElementById('ssdot').style.background='#4ade80';
+    document.getElementById('sstext').textContent='Daten geladen';
+    document.getElementById('s-bk').textContent=BK.length;
+    document.getElementById('s-lz').textContent=LZ.length;
+    document.getElementById('tc').textContent=LZ.length;
+    initNetwork();
+    initDetailNav();
+    initPlannerSidebar();
+    initEmphasisSliders();
+    initEditorList();
+    initAgFocusSelect();
+    renderTimeline();
+  }catch(err){
+    console.error(err);
+    document.getElementById('loading').style.display='none';
+    document.getElementById('err').classList.add('show');
+    document.getElementById('err-detail').textContent=err.message;
+  }
+}
+
+function getAllConcepts(){
+  const all=[];
+  BK.forEach(bk=>{all.push(bk);(bk.teilkonzepte||[]).forEach(tk=>all.push(tk))});
+  return all;
+}
+
+/* ─── VIEW SWITCH ─── */
+function sv(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('v'+v).classList.add('active');
+  document.querySelector(`[data-v="${v}"]`).classList.add('active');
+  if(v==='net')resizeNet();
+  if(v==='analyze')runAnalysis();
+}
+
+/* ════════════════════════════════════════════════
+   NETWORK VIEW
+════════════════════════════════════════════════ */
+function initNetwork(){buildNetNodes();renderNet();setupNetInteraction()}
+
+function buildNetNodes(){
+  const svg=document.getElementById('nsvg');
+  const W=svg.clientWidth||window.innerWidth-400,H=svg.clientHeight||window.innerHeight-180;
+  netNodes=[];netEdges=[];
+  const cx=W/2,cy=H/2;
+  // Ebene 1
+  const e1=BK.filter(b=>b.ebene===1||!b.ebene);
+  const r1=Math.min(W,H)*0.26;
+  e1.forEach((bk,i)=>{
+    const a=(i/e1.length)*Math.PI*2-Math.PI/2;
+    netNodes.push({id:bk.id,label:bk.bezeichnung||bk.name,short:(bk.kurzbezeichnung||'').replace('/','\n'),
+      x:cx+Math.cos(a)*r1,y:cy+Math.sin(a)*r1,r:46,ebene:1,data:bk,color:gc(bk.id).m});
+  });
+  // Ebene 2
+  const e2=BK.filter(b=>b.ebene===2);
+  e2.forEach(tk=>{
+    const par=netNodes.find(n=>n.id===tk.uebergeordnetes_bk);
+    if(!par)return;
+    const a=Math.atan2(par.y-cy,par.x-cx);
+    const paired=tk.paired_teilkonzept;
+    const sib=e2.find(t=>t.id===paired);
+    const off=sib?(tk.id<paired?-.38:.38):0;
+    const r2=r1*.52;
+    netNodes.push({id:tk.id,label:tk.bezeichnung||tk.name,short:(tk.kurzbezeichnung||tk.bezeichnung||'').replace('/','\n'),
+      x:par.x+Math.cos(a+off)*r2,y:par.y+Math.sin(a+off)*r2,r:28,ebene:2,data:tk,color:gc(tk.id).m,parent:tk.uebergeordnetes_bk});
+  });
+  // Lernziele (positioned in cluster around their BK)
+  LZ.forEach((lz,i)=>{
+    const bkId=(lz.basiskonzepte_primaer||[])[0];
+    const parNode=netNodes.find(n=>n.id===bkId);
+    if(!parNode)return;
+    const a=(i/LZ.length)*Math.PI*2;
+    const r3=r1*.32;
+    netNodes.push({id:lz.id,label:lz.kurzbezeichnung||lz.id,short:(lz.id.replace('GY-78-','')),
+      x:parNode.x+Math.cos(a)*r3*(0.5+Math.random()*.7),
+      y:parNode.y+Math.sin(a)*r3*(0.5+Math.random()*.7),
+      r:8,ebene:'lz',data:lz,color:gc(bkId).m,parent:bkId});
+  });
+  // Edges from bk_verbindungen
+  BK.forEach(bk=>{
+    (bk.bk_verbindungen||[]).forEach(rel=>{
+      netEdges.push({src:bk.id,tgt:rel.ziel_bk,type:rel.beziehungstyp,desc:rel.beschreibung});
+    });
+    (bk.teilkonzepte||[]).forEach(tk=>{
+      netEdges.push({src:bk.id,tgt:tk.id,type:'gliedert_sich_in',desc:'Teilkonzept'});
+      (tk.bk_verbindungen||[]).forEach(rel=>{
+        netEdges.push({src:tk.id,tgt:rel.ziel_bk,type:rel.beziehungstyp,desc:rel.beschreibung});
+      });
+    });
+  });
+  // LZ to BK edges
+  LZ.forEach(lz=>{
+    const bkId=(lz.basiskonzepte_primaer||[])[0];
+    if(bkId)netEdges.push({src:lz.id,tgt:bkId,type:'lz_zu_bk',desc:'Lernziel'});
+  });
+}
+
+function renderNet(){
+  const svgEl=document.getElementById('nsvg');
+  svgEl.innerHTML='';
+  const W=svgEl.clientWidth||800,H=svgEl.clientHeight||600;
+  // defs
+  const defs=createSVG('defs');
+  const mk=createSVG('marker',{id:'arr',markerWidth:'7',markerHeight:'5',refX:'7',refY:'2.5',orient:'auto'});
+  const poly=createSVG('polygon',{points:'0 0,7 2.5,0 5',fill:'#94a3b8'});
+  mk.appendChild(poly);defs.appendChild(mk);
+  const f=createSVG('filter',{id:'sh',x:'-20%',y:'-20%',width:'140%',height:'140%'});
+  const ds=createSVG('feDropShadow',{dx:'0',dy:'2','stdDeviation':'3','flood-opacity':'.15'});
+  f.appendChild(ds);defs.appendChild(f);
+  svgEl.appendChild(defs);
+  const g=createSVG('g',{id:'net-g'});
+  svgEl.appendChild(g);
+
+  // Determine visible nodes
+  const vis=n=>{
+    if(netMode==='e1')return n.ebene===1;
+    if(netMode==='e2')return n.ebene===1||n.ebene===2;
+    if(netMode==='both')return n.ebene===1||n.ebene===2;
+    return true; // 'all'
+  };
+
+  // Edges
+  if(showEdges){
+    const eg=createSVG('g',{id:'edges-g'});
+    netEdges.forEach(e=>{
+      const s=netNodes.find(n=>n.id===e.src),t=netNodes.find(n=>n.id===e.tgt);
+      if(!s||!t||!vis(s)||!vis(t))return;
+      if(e.type==='lz_zu_bk'&&netMode!=='all')return;
+      const styles={ermöglicht:{d:'none',c:'#94a3b8',w:1.5},benoetigt:{d:'5,3',c:'#f59e0b',w:1.5},
+        implementiert:{d:'none',c:'#7c3aed',w:2},regelt:{d:'8,3',c:'#0d9488',w:1.5},
+        gliedert_sich_in:{d:'3,3',c:'#cbd5e1',w:1},wird_erklaert_durch:{d:'6,2',c:'#60a5fa',w:1.5},
+        wird_gesteuert_durch:{d:'4,2',c:'#a78bfa',w:1.5},lz_zu_bk:{d:'2,2',c:'#cbd5e1',w:.8},
+        ermoeglichet:{d:'none',c:'#4ade80',w:1.5},implementiert_durch:{d:'none',c:'#8b5cf6',w:1.5}};
+      const st=styles[e.type]||{d:'none',c:'#e2e8f0',w:1};
+      const ln=createSVG('line',{x1:s.x,y1:s.y,x2:t.x,y2:t.y,stroke:st.c,'stroke-width':st.w,'stroke-opacity':e.type==='lz_zu_bk'?.25:.5});
+      if(st.d!=='none')ln.setAttribute('stroke-dasharray',st.d);
+      if(e.type!=='lz_zu_bk'&&e.type!=='gliedert_sich_in')ln.setAttribute('marker-end','url(#arr)');
+      const title=createSVG('title');title.textContent=`${e.type}: ${e.desc||''}`;ln.appendChild(title);
+      eg.appendChild(ln);
+    });
+    g.appendChild(eg);
+  }
+
+  // Nodes
+  const ng=createSVG('g',{id:'nodes-g'});
+  netNodes.forEach(node=>{
+    if(!vis(node))return;
+    const gn=createSVG('g');
+    gn.style.cursor='pointer';
+    gn.addEventListener('click',()=>openCP(node.id));
+
+    if(node.ebene==='lz'){
+      // Small LZ dot
+      const c=createSVG('circle',{r:node.r,fill:node.color,'fill-opacity':'.7',stroke:node.color,'stroke-width':'1.5'});
+      c.classList.add('node-circle');
+      gn.appendChild(c);
+      gn.addEventListener('mouseenter',()=>{c.setAttribute('r',11);c.setAttribute('fill-opacity','1')});
+      gn.addEventListener('mouseleave',()=>{c.setAttribute('r',node.r);c.setAttribute('fill-opacity','.7')});
+      const title=createSVG('title');title.textContent=node.label;gn.appendChild(title);
+    }else{
+      const c=createSVG('circle',{r:node.r,fill:node.color,filter:'url(#sh)'});
+      c.classList.add('node-circle');
+      gn.appendChild(c);
+      gn.addEventListener('mouseenter',()=>{c.setAttribute('r',node.r+4);c.style.filter='brightness(1.12)'});
+      gn.addEventListener('mouseleave',()=>{c.setAttribute('r',node.r);c.style.filter=''});
+      if(node.ebene===1){
+        const ic=createSVG('text',{y:'-7','text-anchor':'middle','font-size':'18','fill':'white','pointer-events':'none'});
+        ic.textContent=BKICONS[node.id]||'●';gn.appendChild(ic);
+      }
+      const lines=(node.short||'').split('\n');
+      const startY=node.ebene===1?8:(lines.length>1?-4:3);
+      lines.forEach((ln,i)=>{
+        const t=createSVG('text',{y:startY+i*11,'text-anchor':'middle','font-size':node.ebene===1?8:8,'font-weight':'700','fill':'white','pointer-events':'none'});
+        t.textContent=ln;gn.appendChild(t);
+      });
+      const title=createSVG('title');title.textContent=node.label;gn.appendChild(title);
+    }
+    gn.setAttribute('transform',`translate(${node.x},${node.y})`);
+    ng.appendChild(gn);
+  });
+  g.appendChild(ng);
+  applyNetT();
+}
+
+function createSVG(tag,attrs={}){
+  const el=document.createElementNS('http://www.w3.org/2000/svg',tag);
+  Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));
+  return el;
+}
+
+function applyNetT(){
+  const g=document.getElementById('net-g');
+  if(g)g.setAttribute('transform',`translate(${netT.x},${netT.y}) scale(${netT.s})`);
+}
+
+function setupNetInteraction(){
+  const svg=document.getElementById('nsvg');
+  let drag=false,lx,ly;
+  svg.addEventListener('mousedown',e=>{drag=true;lx=e.clientX;ly=e.clientY});
+  window.addEventListener('mousemove',e=>{
+    if(!drag)return;
+    netT.x+=e.clientX-lx;netT.y+=e.clientY-ly;lx=e.clientX;ly=e.clientY;applyNetT();
+  });
+  window.addEventListener('mouseup',()=>drag=false);
+  svg.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const d=e.deltaY>0?.9:1.1;
+    netT.s=Math.max(.2,Math.min(4,netT.s*d));applyNetT();
+  });
+}
+
+function resizeNet(){buildNetNodes();renderNet()}
+
+function setNetMode(m){
+  netMode=m;
+  ['e1','e2','both','all'].forEach(x=>{
+    const b=document.getElementById(`nt-${x}`);
+    if(b)b.classList.toggle('on',x===m);
+  });
+  renderNet();
+}
+
+function toggleEdges(){
+  showEdges=!showEdges;
+  document.getElementById('nt-edges').classList.toggle('on',showEdges);
+  renderNet();
+}
+
+/* ─── Concept Panel ─── */
+function openCP(id){
+  const c=getAllConcepts().find(x=>x.id===id);
+  if(!c)return;
+  const col=gc(id).m;
+  document.getElementById('cp-title').textContent=c.bezeichnung||c.name||id;
+  document.getElementById('cp-title').style.color=col;
+  document.getElementById('cp-sub').textContent=c.ebene===2?'Teilkonzept · '+( c.uebergeordnetes_bk||''):'Basiskonzept';
+  let h='';
+  // Definition
+  h+=`<div><div class="ps-title">📋 KMK-Definition</div><div class="pdef" style="border-color:${col};color:${col}">${esc(c.definition_kmk||c.definition||'–')}</div></div>`;
+  // Principles
+  const pp=c.wesentliche_prinzipien_kmk||c.fokus_prinzipien||[];
+  if(pp.length)h+=`<div><div class="ps-title">🔑 Prinzipien</div><div class="pill-row">${pp.map(p=>`<span class="pill" style="color:${col};border-color:${col};background:${gc(id).l}">${esc(p)}</span>`).join('')}</div></div>`;
+  // Misconceptions
+  const mm=c.haeufige_schuelervorstellungen||[];
+  if(mm.length)h+=`<div><div class="ps-title">⚠️ Fehlvorstellungen</div>${mm.slice(0,2).map(m=>`<div class="misc-card"><div class="misc-w">✗ ${esc(m.fehlvorstellung)}</div><div class="misc-r">✓ ${esc(m.korrekte_vorstellung)}</div></div>`).join('')}${mm.length>2?`<div style="font-size:10px;color:var(--txt3);margin-top:3px">+${mm.length-2} weitere</div>`:''}</div>`;
+  // Links
+  h+=`<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:4px;">
+    <button class="net-link-btn" style="color:${col};border-color:${col}44;" onclick="navToDetail('${id}')">🔍 Konzeptdetail</button>
+    <button class="net-link-btn" style="color:var(--txt2);border-color:var(--border);" onclick="sv('plan')">📅 Planer</button>
+  </div>`;
+  document.getElementById('cp-body').innerHTML=h;
+  document.getElementById('cpanel').classList.add('open');
+}
+
+function closeCP(){document.getElementById('cpanel').classList.remove('open')}
+function navToDetail(id){sv('detail');selDetail(id);closeCP()}
+
+/* ════════════════════════════════════════════════
+   DETAIL VIEW
+════════════════════════════════════════════════ */
+function initDetailNav(){
+  const nav=document.getElementById('det-nav');
+  const e1=BK.filter(b=>b.ebene===1||!b.ebene);
+  nav.innerHTML=e1.map(bk=>{
+    const col=gc(bk.id).m;
+    const tks=bk.teilkonzepte||[];
+    return `<div class="dn-group">
+      <div class="dn-item" id="dn-${bk.id}" style="color:${col}" onclick="selDetail('${bk.id}')">
+        <div class="dn-dot" style="background:${col}"></div>
+        <div><div class="dn-label">${esc(bk.bezeichnung||bk.name)}</div><div class="dn-sub">Basiskonzept</div></div>
+      </div>
+      ${tks.map(tk=>`<div class="dn-item" id="dn-${tk.id}" style="color:${col};padding-left:26px" onclick="selDetail('${tk.id}')">
+        <div class="dn-dot" style="background:${col};opacity:.6;width:8px;height:8px"></div>
+        <div><div class="dn-label" style="font-size:11px">${esc(tk.bezeichnung||tk.name)}</div><div class="dn-sub">Teilkonzept</div></div>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function selDetail(id){
+  document.querySelectorAll('.dn-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById(`dn-${id}`)?.classList.add('active');
+  renderDetailMain(id);
+}
+
+function renderDetailMain(id){
+  const c=getAllConcepts().find(x=>x.id===id);
+  if(!c)return;
+  const col=gc(id).m,cll=gc(id).l;
+  const isE1=c.ebene===1||!c.ebene;
+  const main=document.getElementById('det-main');
+
+  const s=(t,body)=>`<div class="dsec"><div class="dsec-title" style="color:${col}">${t}</div>${body}</div>`;
+
+  let h=`<div class="dcard">
+    <div class="dcard-head" style="color:${col}">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        ${isE1?`<span style="font-size:26px">${BKICONS[id]||'●'}</span>`:''}
+        <div>
+          <div class="dcard-title">${esc(c.bezeichnung||c.name)}</div>
+          <div class="dcard-sub">${isE1?'Basiskonzept (Ebene 1)':'Teilkonzept · '+(c.uebergeordnetes_bk||'')}</div>
+        </div>
+        <button class="net-link-btn" style="margin-left:auto;color:${col};border-color:${col}44" onclick="sv('net');setTimeout(()=>openCP('${id}'),300)">🕸️ Im Netz anzeigen</button>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${[['Transferpotenzial',c.transfer_potential],['Komplexität Kl.7/8',c.complexity_level_gy78],['Zentralität',c.centrality_estimate]].filter(([,v])=>v!==undefined).map(([lbl,v])=>`<span style="padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;background:${cll};color:${col}">${esc(lbl)}: ${Math.round(v*100)}%</span>`).join('')}
+      </div>
+    </div>
+    <div class="dcard-body">`;
+
+  // KMK definition
+  h+=s('📋 KMK-Definition',`<div class="def-box" style="border-color:${col};color:${col}">${esc(c.definition_kmk||c.definition||'–')}</div>`);
+
+  // Didactic
+  if(c.definition_didaktisch)h+=s('💡 Didaktische Einordnung',`<div class="def-box" style="border-left-color:var(--border2);color:var(--txt2)">${esc(c.definition_didaktisch)}</div>`);
+
+  // Principles
+  const pp=c.wesentliche_prinzipien_kmk||c.fokus_prinzipien||[];
+  if(pp.length){
+    const icons={Kompartimentierung:'🗂️','Schlüssel-Schloss-Prinzip':'🔑',Oberflächenvergrößerung:'📐',Gegenspielerprinzip:'⚖️',Gegenstromprinzip:'↔️',Fließgleichgewicht:'🌊',Stoffkreislauf:'♻️',Energieentwertung:'🔥','Energetische Kopplung':'⚡',Signaltransduktion:'📡','Codierung und Decodierung von Information':'💾','Negative Rückkopplung':'🔄','Positive Rückkopplung':'📈','Homöostase':'⚖️',Zelldifferenzierung:'🧬',Reproduktion:'🔁',Selektion:'🌿'};
+    h+=s('🔑 Schlüsselprinzipien',`<div class="pg">${pp.map(p=>`<div class="pcard"><div class="pcard-ic" style="background:${cll};color:${col}">${icons[p]||'●'}</div><span>${esc(p)}</span></div>`).join('')}</div>`);
+  }
+
+  // System levels
+  const lvls=c.systemebenen||c.typical_scales||[];
+  if(lvls.length){
+    const ALL=['Molekül','Organell','Zelle','Gewebe','Organ','Organismus','Population','Art','Ökosystem','Biosphäre'];
+    const act=lvls.map(l=>l.replace(/\s*$.*$/,'').trim());
+    h+=s('📏 Systemebenen',`<div style="display:flex;flex-wrap:wrap;gap:4px">${ALL.map(lv=>{const on=act.some(a=>a.toLowerCase().includes(lv.toLowerCase())||lv.toLowerCase().includes(a.toLowerCase()));return`<span style="padding:2px 8px;border-radius:4px;font-size:10px;background:${on?col:'var(--bg3)'};color:${on?'white':'var(--txt3)'};border:1px solid ${on?col:'var(--border)'}">${lv}</span>`}).join('')}</div>`);
+  }
+
+  // Examples
+  const ex=c.beispielthemen_gy78||c.beispielthemen||[];
+  if(ex.length)h+=s('📚 Beispielthemen Kl. 7–8',`<div style="display:flex;flex-direction:column;gap:3px">${ex.map(e=>`<div style="padding:5px 9px;background:var(--bg3);border-radius:4px;font-size:11px;border-left:3px solid ${col}40">${esc(e)}</div>`).join('')}</div>`);
+
+  // Misconceptions
+  const mc=c.haeufige_schuelervorstellungen||[];
+  if(mc.length)h+=s('⚠️ Häufige Schülervorstellungen',mc.map((m,i)=>`<div class="mflip" id="mc-${id}-${i}"><div class="mf-head" onclick="toggleMC('mc-${id}-${i}')"><div class="mf-ic">!</div><div class="mf-txt">${esc(m.fehlvorstellung)}</div><span style="font-size:11px;color:var(--txt3);margin-left:auto">▾</span></div><div class="mf-body" id="mcb-${id}-${i}"><div class="mf-ok">✓ ${esc(m.korrekte_vorstellung)}</div>${m.didaktischer_hinweis?`<div class="mf-hint">💡 ${esc(m.didaktischer_hinweis)}</div>`:''}</div></div>`).join(''));
+
+  // Diagnostic questions
+  const dq=c.diagnostische_fragen||[];
+  if(dq.length)h+=s('❓ Diagnostische Fragen',dq.map((q,i)=>`<div class="dq"><div class="dq-n" style="background:${col}">${i+1}</div><span>${esc(q)}</span></div>`).join(''));
+
+  // Representation progression
+  const rp=c.darstellungsformen_progression||[];
+  if(rp.length)h+=s('📊 Darstellungsformen-Progression',rp.map((r,i)=>`<div class="repr-step"><div class="repr-n" style="background:${cll};color:${col}">${i+1}</div><div style="font-size:12px">${esc(r)}</div></div>`).join(''));
+
+  // Alltagsanker
+  const aa=c.alltagsanker||[];
+  if(aa.length)h+=s('🏠 Alltagsanker',`<div style="display:flex;flex-direction:column;gap:4px">${aa.map(a=>`<div style="padding:7px 9px;background:${cll};border-radius:var(--r);font-size:12px;border:1px solid ${col}22">${esc(a)}</div>`).join('')}</div>`);
+
+  // Language pitfalls
+  const lang=c.sprachliche_stolpersteine||[];
+  if(lang.length)h+=s('🗣️ Sprachliche Stolpersteine',lang.map(l=>`<div style="padding:9px 11px;background:#fff;border:1px solid var(--border);border-radius:var(--r);margin-bottom:5px"><div style="font-size:12px;font-weight:700;margin-bottom:3px">„${esc(l.begriff)}"</div><div style="font-size:11px;color:#dc2626;margin-bottom:2px">⚠️ ${esc(l.problem)}</div><div style="font-size:11px;color:#15803d">✓ ${esc(l.empfehlung)}</div></div>`).join(''));
+
+  // BK connections
+  const bc=c.bk_verbindungen||[];
+  if(bc.length){
+    const cc2={ermöglicht:'#0d9488',benoetigt:'#f59e0b',implementiert:'#7c3aed',regelt:'#2563eb',wird_erklaert_durch:'#60a5fa',wird_gesteuert_durch:'#a78bfa',ermoeglichet:'#16a34a'};
+    h+=s('🔗 Basiskonzept-Verbindungen',bc.map(c2=>`<div class="conn-item"><span class="conn-type" style="background:${cc2[c2.beziehungstyp]||'#94a3b8'}22;color:${cc2[c2.beziehungstyp]||'#64748b'};border:1px solid ${cc2[c2.beziehungstyp]||'#94a3b8'}44">${esc(c2.beziehungstyp)}</span><div><div style="font-size:10px;font-weight:700;color:var(--txt2);margin-bottom:1px">→ ${esc(c2.ziel_bk)}</div><div class="conn-desc">${esc(c2.beschreibung)}</div></div></div>`).join(''));
+  }
+
+  // Sequencing
+  const seq=c.sequenzierungsempfehlung;
+  if(seq)h+=s('📅 Sequenzierungsempfehlung',`<div style="background:${cll};border:1px solid ${col}33;border-radius:var(--r2);padding:12px"><div style="font-size:11px;font-weight:700;color:${col};margin-bottom:5px">📍 ${esc(seq.empfohlene_phase||seq.empfohlene_phase_ontogenese||'–')}</div><div style="font-size:11px;color:var(--txt2);line-height:1.6;margin-bottom:6px">${esc(seq.begruendung||'–')}</div>${seq.warnung?`<div style="background:#fef3c7;border:1px solid #fde68a;border-radius:3px;padding:7px;font-size:10px;color:#92400e">⚠️ ${esc(seq.warnung)}</div>`:''}</div>`);
+
+  // Concept anchors
+  const acs=c.konzeptanker_lernziele||[];
+  if(acs.length)h+=s('⭐ Konzeptanker-Lernziele',acs.map(a=>{const lz=LZ.find(l=>l.id===a.lernziel_id);return`<div style="padding:9px 11px;background:#fff;border:1.5px dashed ${col}55;border-radius:var(--r);margin-bottom:5px;cursor:pointer" onclick="sv('plan')"><div style="font-size:10px;font-weight:700;color:${col}">⭐ ${esc(a.lernziel_id)}</div><div style="font-size:12px;font-weight:600;margin:2px 0">${esc(lz?(lz.kurzbezeichnung||lz.originaltext):a.lernziel_id)}</div><div style="font-size:10px;color:var(--txt2)">${esc(a.begruendung)}</div></div>`}).join(''));
+
+  // LZ chips
+  const lzIds=c.lernziel_ids_thuringia||[];
+  if(lzIds.length){
+    const anchIds=acs.map(a=>a.lernziel_id);
+    h+=s(`🎯 Verknüpfte Lernziele (${lzIds.length})`,`<div class="pill-row">${lzIds.map(id=>{const lz=LZ.find(l=>l.id===id);const isA=anchIds.includes(id);return`<span class="lz-chip ${isA?'anc':''}" style="color:${col};border-color:${col}44;background:${isA?cll:'var(--bg3)'}" title="${esc(lz?(lz.originaltext||''):id)}" onclick="sv('plan')">${isA?'⭐ ':''}${esc(id.replace('GY-78-',''))}</span>`}).join('')}</div>`);
+  }
+
+  // Teilkonzepte (E1 only)
+  if(isE1&&(c.teilkonzepte||[]).length){
+    h+=s('📂 Teilkonzepte',`<div style="display:grid;grid-template-columns:1fr 1fr;gap:9px">${c.teilkonzepte.map(tk=>`<div style="padding:12px;background:${cll};border:1.5px solid ${col}33;border-radius:var(--r2);cursor:pointer" onclick="selDetail('${tk.id}')" onmouseenter="this.style.borderColor='${col}'" onmouseleave="this.style.borderColor='${col}33'"><div style="font-size:12px;font-weight:700;color:${col};margin-bottom:3px">${esc(tk.bezeichnung||tk.name)}</div><div style="font-size:10px;color:var(--txt2)">${(tk.fokus_prinzipien||[]).slice(0,2).join(' · ')}</div><div style="font-size:9px;color:var(--txt3);margin-top:5px">→ Details</div></div>`).join('')}</div>`);
+  }
+
+  h+=`</div></div>`;
+  main.innerHTML=h;
+}
+
+function toggleMC(cid){
+  const b=document.getElementById(cid)?.querySelector('.mf-body');
+  if(b)b.classList.toggle('open');
+}
+
+/* ════════════════════════════════════════════════
+   PLANNER VIEW
+════════════════════════════════════════════════ */
+let lzFilter='all', lzSearch='';
+
+function initPlannerSidebar(){
+  buildSBFilters();renderLZList();
+}
+
+function buildSBFilters(){
+  const c=document.getElementById('sb-filters');
+  const e1=BK.filter(b=>b.ebene===1||!b.ebene);
+  let h=`<button class="fc on" data-bk="all" onclick="filterBK('all',this)">Alle</button>`;
+  e1.forEach(bk=>{
+    const col=gc(bk.id).m;
+    h+=`<button class="fc" data-bk="${bk.id}" onclick="filterBK('${bk.id}',this)" style="color:${col};border-color:${col}44">${bkShort(bk.id)}</button>`;
+  });
+  h+=`<button class="fc" data-bk="prak" onclick="filterBK('prak',this)">🔬</button>`;
+  h+=`<button class="fc" data-bk="anker" onclick="filterBK('anker',this)">⭐</button>`;
+  c.innerHTML=h;
+}
+
+function filterBK(bk,btn){
+  lzFilter=bk;
+  document.querySelectorAll('.fc').forEach(b=>{b.classList.remove('on');b.style.background='';b.style.color='';});
+  btn.classList.add('on');
+  if(bk!=='all'&&bk!=='prak'&&bk!=='anker'){const col=gc(bk).m;btn.style.background=col;btn.style.color='#fff';btn.style.borderColor=col;}
+  renderLZList();
+}
+
+function filterLZ(v){lzSearch=v.toLowerCase();renderLZList()}
+
+function renderLZList(){
+  const pl=allPlaced();
+  let arr=LZ.filter(lz=>{
+    if(lzFilter==='prak')return lz.ist_praktisch;
+    if(lzFilter==='anker')return lz.ist_konzeptanker;
+    if(lzFilter!=='all')return(lz.basiskonzepte_primaer||[]).includes(lzFilter)||(lz.basiskonzepte_sekundaer||[]).includes(lzFilter);
+    return true;
+  });
+  if(lzSearch)arr=arr.filter(lz=>(lz.kurzbezeichnung||'').toLowerCase().includes(lzSearch)||(lz.originaltext||'').toLowerCase().includes(lzSearch)||(lz.id||'').toLowerCase().includes(lzSearch)||(lz.thema||'').toLowerCase().includes(lzSearch));
+  const c=document.getElementById('lz-list');
+  if(!arr.length){c.innerHTML=`<div class="empty-state" style="padding:20px"><div class="empty-icon" style="font-size:28px">🔍</div><div class="empty-title" style="font-size:12px">Keine Ergebnisse</div></div>`;return}
+  c.innerHTML=arr.map(lz=>{
+    const col=gc((lz.basiskonzepte_primaer||[])[0]).m;
+    const placed=pl.includes(lz.id);
+    return`<div class="lzcard ${placed?'placed':''}" id="lzsb-${lz.id}" draggable="${!placed}" ondragstart="onDS(event,'${lz.id}')" title="${esc(lz.originaltext||'')}">
+      <div class="lzc-id">${esc(lz.id.replace('GY-78-',''))}</div>
+      <div class="lzc-title">${esc(lz.kurzbezeichnung||lz.originaltext||lz.id)}</div>
+      <div class="lzc-meta">
+        <span class="bkdot" style="background:${col}"></span>
+        <span class="mpill">${esc(bkShort((lz.basiskonzepte_primaer||[])[0]))}</span>
+        <span class="mpill">Kl.${lz.empfohlene_klassenstufe||'?'}</span>
+        <span class="mpill">${lz.geschaetzte_unterrichtsstunden||1}h</span>
+        ${lz.ist_konzeptanker?'<span class="astar">⭐</span>':''}
+        ${lz.ist_praktisch?'<span class="mpill">🔬</span>':''}
+        ${placed?'<span class="mpill" style="background:#dcfce7;color:#15803d">✓</span>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updatePlanStats(){
+  const p=allPlaced().length;
+  document.getElementById('pc').textContent=p;
+  document.getElementById('tc').textContent=LZ.length;
+}
+
+function setPlanMode(m){
+  planMode=m;
+  document.querySelectorAll('.mode-btn').forEach(b=>{
+    if(b.id===`mode-${m}`)b.classList.add('active');
+    else if(b.id&&b.id.startsWith('mode-'))b.classList.remove('active');
+  });
+  renderTimeline();
+}
+
+function toggleEmphasis(){
+  const bar=document.getElementById('emph-bar');
+  bar.classList.toggle('show');
+  document.getElementById('emph-toggle').classList.toggle('active',bar.classList.contains('show'));
+}
+
+function initEmphasisSliders(){
+  const e1=BK.filter(b=>b.ebene===1||!b.ebene);
+  const g=document.getElementById('emph-grid');
+  g.innerHTML=e1.map(bk=>{
+    const col=gc(bk.id).m;
+    const short=bk.kurzbezeichnung||bk.bezeichnung||'';
+    return`<div class="emph-item">
+      <span class="emph-label" style="color:${col}" title="${esc(bk.bezeichnung||bk.name)}">${BKICONS[bk.id]||''} ${esc(short)}</span>
+      <input type="range" class="emph-range" min="0" max="100" value="${EMPH[bk.id]||50}" style="color:${col}"
+             oninput="EMPH['${bk.id}']=parseInt(this.value);this.nextElementSibling.textContent=this.value+'%'">
+      <span class="emph-val" style="color:${col}">${EMPH[bk.id]||50}%</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleAutoGen(){
+  const p=document.getElementById('autogen-panel');
+  p.classList.toggle('show');
+}
+
+function initAgFocusSelect(){
+  const sel=document.getElementById('ag-focus');
+  const e1=BK.filter(b=>b.ebene===1||!b.ebene);
+  e1.forEach(bk=>{
+    const o=document.createElement('option');
+    o.value=bk.id;o.textContent=bk.kurzbezeichnung||bk.bezeichnung||bk.id;
+    sel.appendChild(o);
+  });
+}
+
+function autoGenerate(){
+  const strat=document.getElementById('ag-strat').value;
+  const focus=document.getElementById('ag-focus').value;
+  SEQ={};
+
+  // Sort LZ by strategy
+  let sorted=[...LZ];
+
+  if(strat==='linear'){
+    // Keep original order
+  } else if(strat==='prereq'){
+    sorted=topologicalSort(sorted);
+  } else if(strat==='bk'){
+    // Group by BK respecting emphasis
+    const e1=BK.filter(b=>b.ebene===1||!b.ebene);
+    const total=e1.reduce((s,b)=>s+(EMPH[b.id]||50),0)||1;
+    const groups={};
+    e1.forEach(b=>{
+      const bkLz=LZ.filter(lz=>(lz.basiskonzepte_primaer||[])[0]===b.id);
+      groups[b.id]=bkLz;
+    });
+    sorted=[];
+    // Distribute weighted
+    e1.forEach(b=>{sorted=[...sorted,...groups[b.id]]});
+  } else if(strat==='interleave'||strat==='spiral'){
+    // Interleave across BKs
+    const e1=BK.filter(b=>b.ebene===1||!b.ebene);
+    const buckets={};
+    e1.forEach(b=>{buckets[b.id]=LZ.filter(lz=>(lz.basiskonzepte_primaer||[])[0]===b.id)});
+    // Sort buckets by emphasis
+    const order=[...e1].sort((a,b)=>(EMPH[b.id]||50)-(EMPH[a.id]||50));
+    sorted=[];
+    let maxLen=Math.max(...order.map(b=>buckets[b.id].length));
+    for(let i=0;i<maxLen;i++){
+      order.forEach(b=>{if(buckets[b.id][i])sorted.push(buckets[b.id][i])});
+    }
+    if(strat==='spiral'){
+      // Spiral: split into two passes
+      const half=Math.ceil(sorted.length/2);
+      sorted=[...sorted.slice(0,half),...sorted.slice(0,half),...sorted.slice(half)].filter((v,i,a)=>a.findIndex(x=>x.id===v.id)===i);
+    }
+  }
+
+  if(focus){
+    // Move focus BK items to be more distributed
+    const focusItems=sorted.filter(lz=>(lz.basiskonzepte_primaer||[]).includes(focus)||(lz.basiskonzepte_sekundaer||[]).includes(focus));
+    const others=sorted.filter(lz=>!focusItems.includes(lz));
+    const interleavedFocus=[];
+    const step=Math.max(1,Math.floor(others.length/focusItems.length));
+    let fi=0;
+    others.forEach((lz,i)=>{
+      interleavedFocus.push(lz);
+      if(fi<focusItems.length&&(i+1)%step===0)interleavedFocus.push(focusItems[fi++]);
+    });
+    while(fi<focusItems.length)interleavedFocus.push(focusItems[fi++]);
+    sorted=interleavedFocus;
+  }
+
+  if(planMode==='quarter'){
+    const total=sorted.length;
+    const perQ=Math.ceil(total/8);
+    QUARTERS.forEach(({y,q},qi)=>{
+      const key=QK(y,q);
+      SEQ[key]=sorted.slice(qi*perQ,(qi+1)*perQ).map(lz=>lz.id);
+    });
+  }else{
+    // Custom: fill lessons
+    ['7','8'].forEach(yr=>{
+      for(let l=1;l<=LESSONS_PER_YEAR;l++){
+        const k=`${yr}-L${l}`;
+        if(!customLessons[k])customLessons[k]={name:`Stunde ${l}`,lzIds:[]};
+      }
+    });
+    const lzPer=Math.ceil(sorted.length/(LESSONS_PER_YEAR*2));
+    let lzIdx=0;
+    ['7','8'].forEach(yr=>{
+      for(let l=1;l<=LESSONS_PER_YEAR&&lzIdx<sorted.length;l++){
+        const k=`${yr}-L${l}`;
+        customLessons[k]={name:customLessons[k]?.name||`Stunde ${l}`,lzIds:sorted.slice(lzIdx,lzIdx+lzPer).map(x=>x.id)};
+        lzIdx+=lzPer;
+      }
+    });
+  }
+
+  savePlan();renderTimeline();renderLZList();updatePlanStats();runWarnings();
+  toggleAutoGen();
+  toast(`Sequenz generiert (${sorted.length} LZ, Strategie: ${strat})`, 'success');
+}
+
+function topologicalSort(lzArr){
+  const visited=new Set(),result=[];
+  function visit(lz){
+    if(visited.has(lz.id))return;
+    visited.add(lz.id);
+    (lz.voraussetzende_lernziele||[]).forEach(rid=>{
+      const req=lzArr.find(l=>l.id===rid);
+      if(req)visit(req);
+    });
+    result.push(lz);
+  }
+  lzArr.forEach(lz=>visit(lz));
+  return result;
+}
+
+/* ─── Timeline Rendering ─── */
+function renderTimeline(){
+  const wrap=document.getElementById('timeline-wrap');
+  if(planMode==='quarter'){
+    wrap.innerHTML=['7','8'].map(yr=>`
+      <div class="yr-block">
+        <div class="yr-label"><span class="yr-badge">Klasse ${yr}</span> Schuljahr ${yr==='7'?'1':'2'} · ${LESSONS_PER_YEAR} Unterrichtsstunden / Jahr</div>
+        <div class="quarters-grid">
+          ${['Q1','Q2','Q3','Q4'].map(q=>renderQuarter(yr,q)).join('')}
+        </div>
+      </div>`).join('');
+  }else{
+    wrap.innerHTML=['7','8'].map(yr=>`
+      <div class="yr-block">
+        <div class="yr-label"><span class="yr-badge">Klasse ${yr}</span> Schuljahr ${yr==='7'?'1':'2'} · Einzelstunden-Ansicht (${LESSONS_PER_YEAR} Stunden)</div>
+        <div class="lessons-grid">
+          ${Array.from({length:LESSONS_PER_YEAR},(_,i)=>renderLesson(yr,i+1)).join('')}
+        </div>
+      </div>`).join('');
+  }
+  updatePlanStats();
+}
+
+function renderQuarter(yr,q){
+  const key=QK(yr,q);
+  const placed=SEQ[key]||[];
+  // BK bar
+  const bkC={};
+  placed.forEach(id=>{const lz=LZ.find(l=>l.id===id);const b=(lz?.basiskonzepte_primaer||[])[0];if(b)bkC[b]=(bkC[b]||0)+1});
+  const tot=placed.length||1;
+  const bar=Object.entries(bkC).map(([b,n])=>`<div style="background:${gc(b).m};flex:${n/tot}"></div>`).join('');
+  const warnings=checkQWarnings(key,placed);
+  const usedH=placed.reduce((s,id)=>{const lz=LZ.find(l=>l.id===id);return s+(lz?.geschaetzte_unterrichtsstunden||1)},0);
+  return`<div class="quarter-col" id="qcol-${key}" ondragover="onDO(event)" ondragleave="onDL(event)" ondrop="onDrop(event,'${yr}','${q}')">
+    <div class="q-head">
+      <span class="q-name">${q.replace('Q','Q')} · Kl.${yr}</span>
+      <span class="q-count">${placed.length} LZ · ~${usedH}h/${LESSONS_PER_QUARTER}h</span>
+    </div>
+    <div class="q-bkbar">${bar}</div>
+    <div class="q-body" id="qb-${key}">
+      ${placed.map(id=>{
+        const lz=LZ.find(l=>l.id===id);
+        if(!lz)return'';
+        const col=gc((lz.basiskonzepte_primaer||[])[0]).m;
+        const colL=gc((lz.basiskonzepte_primaer||[])[0]).l;
+        const w=warnings.find(w=>w.lzId===id);
+        return`<div class="placed-card" style="border-color:${col}55;background:${colL}">
+          <span class="bkdot" style="background:${col};margin-top:3px;flex-shrink:0"></span>
+          <span class="pc-title">${esc(lz.kurzbezeichnung||id.replace('GY-78-',''))}</span>
+          ${w?`<span class="wflag">⚠️</span>`:''}
+          ${lz.ist_konzeptanker?'<span style="font-size:9px">⭐</span>':''}
+          <button class="pc-rm" onclick="removePlaced('${key}','${id}')">✕</button>
+        </div>`;
+      }).join('')}
+      <div style="flex:1;min-height:32px;display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:10px;opacity:.45">${placed.length===0?'+ Hierher ziehen':''}</div>
+    </div>
+    <div class="q-hours" style="color:${usedH>LESSONS_PER_QUARTER?'#dc2626':'var(--txt3)'}">
+      ${usedH}h geplant / ~${LESSONS_PER_QUARTER}h verfügbar ${usedH>LESSONS_PER_QUARTER?'⚠️ Überladen':''}
+    </div>
+  </div>`;
+}
+
+function renderLesson(yr,num){
+  const key=`${yr}-L${num}`;
+  if(!customLessons[key])customLessons[key]={name:'',lzIds:[]};
+  const lesson=customLessons[key];
+  const lzIds=lesson.lzIds||[];
+  const hasContent=lzIds.length>0||lesson.name;
+  // BK dot for predominant BK
+  let dotColor='var(--border2)';
+  if(lzIds.length){const lz=LZ.find(l=>l.id===lzIds[0]);if(lz)dotColor=gc((lz.basiskonzepte_primaer||[])[0]).m}
+  return`<div class="lesson-box ${hasContent?'has-content':''}" id="lb-${key}"
+       ondragover="onDO(event)" ondragleave="onDL(event)" ondrop="onDropLesson(event,'${yr}','${num}')">
+    <div class="lb-head">
+      <span class="lb-num" style="background:${dotColor};color:#fff;padding:1px 5px;border-radius:3px">${num}</span>
+      <input class="lb-name-input" type="text" placeholder="Stundenthema …" value="${esc(lesson.name||'')}"
+             oninput="updateLessonName('${key}',this.value)" title="Stundenthema eingeben">
+    </div>
+    <div class="lb-body" id="lbb-${key}">
+      ${lzIds.map(id=>{
+        const lz=LZ.find(l=>l.id===id);
+        if(!lz)return'';
+        const col=gc((lz.basiskonzepte_primaer||[])[0]).m;
+        const colL=gc((lz.basiskonzepte_primaer||[])[0]).l;
+        return`<div class="lb-lz" style="border-color:${col}55;background:${colL}">
+          <span class="bkdot" style="background:${col}"></span>
+          <span class="lb-lz-txt">${esc(lz.kurzbezeichnung||id.replace('GY-78-',''))}</span>
+          <button class="lb-rm" onclick="removeLessonLZ('${key}','${id}')">✕</button>
+        </div>`;
+      }).join('')}
+      ${lzIds.length===0?`<div class="lb-add-hint">Lernziel hierher ziehen</div>`:''}
+    </div>
+  </div>`;
+}
+
+function updateLessonName(key,val){
+  if(!customLessons[key])customLessons[key]={name:'',lzIds:[]};
+  customLessons[key].name=val;
+  savePlan();
+}
+
+function removeLessonLZ(key,lzId){
+  if(!customLessons[key])return;
+  customLessons[key].lzIds=customLessons[key].lzIds.filter(id=>id!==lzId);
+  savePlan();renderTimeline();renderLZList();updatePlanStats();
+}
+
+// DnD
+let dragId=null;
+function onDS(e,id){dragId=id;e.dataTransfer.effectAllowed='move'}
+function onDO(e){e.preventDefault();e.currentTarget.classList.add('drag-over');e.dataTransfer.dropEffect='move'}
+function onDL(e){e.currentTarget.classList.remove('drag-over')}
+
+function onDrop(e,yr,q){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  if(!dragId)return;
+  const key=QK(yr,q);
+  if(!SEQ[key])SEQ[key]=[];
+  // Remove from old location
+  for(const k of Object.keys(SEQ))SEQ[k]=SEQ[k].filter(id=>id!==dragId);
+  if(!SEQ[key].includes(dragId))SEQ[key].push(dragId);
+  dragId=null;savePlan();renderTimeline();renderLZList();updatePlanStats();runWarnings();
+}
+
+function onDropLesson(e,yr,num){
+  e.preventDefault();e.currentTarget.classList.remove('drag-over');
+  if(!dragId)return;
+  const key=`${yr}-L${num}`;
+  if(!customLessons[key])customLessons[key]={name:'',lzIds:[]};
+  // Remove from other lessons
+  Object.keys(customLessons).forEach(k=>{customLessons[k].lzIds=customLessons[k].lzIds.filter(id=>id!==dragId)});
+  // Also remove from quarter plan
+  Object.keys(SEQ).forEach(k=>{SEQ[k]=SEQ[k].filter(id=>id!==dragId)});
+  if(!customLessons[key].lzIds.includes(dragId))customLessons[key].lzIds.push(dragId);
+  dragId=null;savePlan();renderTimeline();renderLZList();updatePlanStats();
+}
+
+function removePlaced(key,id){
+  if(!SEQ[key])return;
+  SEQ[key]=SEQ[key].filter(x=>x!==id);
+  savePlan();renderTimeline();renderLZList();updatePlanStats();runWarnings();
+}
+
+function clearPlan(){
+  if(!confirm('Gesamten Sequenzplan zurücksetzen?'))return;
+  SEQ={};customLessons={};
+  savePlan();renderTimeline();renderLZList();updatePlanStats();
+  document.getElementById('warns-panel').classList.remove('show');
+  toast('Sequenzplan zurückgesetzt','warning');
+}
+
+function savePlan(){
+  try{localStorage.setItem('lk_seq',JSON.stringify(SEQ));localStorage.setItem('lk_custom',JSON.stringify(customLessons))}catch(e){}
+}
+
+function checkQWarnings(key,placed){
+  const warns=[];
+  const qIdx=getQIdx(key);
+  const pl=allPlaced();
+  placed.forEach(id=>{
+    const lz=LZ.find(l=>l.id===id);
+    if(!lz||!lz.voraussetzende_lernziele)return;
+    lz.voraussetzende_lernziele.forEach(req=>{
+      if(!pl.includes(req)){warns.push({lzId:id,type:'missing',reqId:req})}
+      else{const rq=findQforLZ(req);if(rq&&getQIdx(rq)>qIdx)warns.push({lzId:id,type:'order',reqId:req})}
+    });
+  });
+  return warns;
+}
+
+function runWarnings(){
+  const all=[];
+  QUARTERS.forEach(({y,q})=>{
+    const key=QK(y,q);
+    const placed=SEQ[key]||[];
+    checkQWarnings(key,placed).forEach(w=>all.push(w));
+  });
+  const panel=document.getElementById('warns-panel');
+  const list=document.getElementById('warns-list');
+  document.getElementById('wc').textContent=all.length;
+  if(!all.length){panel.classList.remove('show');return}
+  panel.classList.add('show');
+  list.innerHTML=all.slice(0,7).map(w=>`<div class="w-item"><span>⚠️</span><span>"${esc(lzTitle(w.lzId))}" ${w.type==='missing'?'– Voraussetzung "'+esc(lzTitle(w.reqId))+'" fehlt':'– kommt nach Voraussetzung "'+esc(lzTitle(w.reqId))+'"'}</span></div>`).join('');
+  if(all.length>7)list.innerHTML+=`<div class="w-item" style="color:var(--txt3)">+${all.length-7} weitere → Sequenzanalyse</div>`;
+}
+
+/* ════════════════════════════════════════════════
+   ANALYSIS VIEW
+════════════════════════════════════════════════ */
+function runAnalysis(){
+  const pl=allPlaced();
+  const content=document.getElementById('az-content');
+  if(!pl.length){
+    content.innerHTML=`<div class="empty-state" style="padding-top:70px"><div class="empty-icon">📊</div><div class="empty-title">Keine Lernziele platziert</div><div class="empty-desc">Planen Sie zuerst Lernziele im Sequenzplaner.</div><button class="btn btn-primary" style="margin-top:8px" onclick="sv('plan')">→ Zum Sequenzplaner</button></div>`;
+    return;
+  }
+  const findings=collectFindings();
+  const score=calcScore(findings);
+  const bkDist=calcBKDist();
+  const scoreCol=score>=85?'#22c55e':score>=70?'#3b82f6':score>=50?'#f59e0b':'#ef4444';
+  const scoreLabel=score>=85?'Ausgezeichnet':score>=70?'Gut':score>=50?'Verbesserungswürdig':'Überarbeitungsbedarf';
+  const crit=findings.filter(f=>f.severity==='critical').length;
+  const adv=findings.filter(f=>f.severity==='advisory').length;
+  const sug=findings.filter(f=>f.severity==='suggestion').length;
+  const ok=findings.filter(f=>f.severity==='ok').length;
+
+  content.innerHTML=`
+    <div class="az-head">
+      <div class="az-title">📊 Sequenzqualitätsanalyse</div>
+      <div class="az-sub">${pl.length} Lernziele platziert · Automatische Überprüfung aller Datensatz-Constraints</div>
+    </div>
+    <div class="score-card">
+      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${scoreCol};border-radius:var(--r3) var(--r3) 0 0"></div>
+      <div class="sc-circle" style="background:${scoreCol}18;border:4px solid ${scoreCol}33">
+        <div class="sc-num" style="color:${scoreCol}">${score}</div>
+        <div class="sc-lbl">/ 100</div>
+      </div>
+      <div class="sc-detail">
+        <div class="sc-title">${scoreLabel}</div>
+        <div class="sc-desc">Bewertung: Voraussetzungsreihenfolge, Konzeptanker-Platzierung, BK-Verteilung, Interleaving, Stundenkontingent.</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px">
+          <span style="padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;background:#fee2e2;color:#dc2626">🔴 Kritisch: ${crit}</span>
+          <span style="padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;background:#fef3c7;color:#d97706">🟡 Hinweis: ${adv}</span>
+          <span style="padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;background:#dbeafe;color:#2563eb">🔵 Vorschlag: ${sug}</span>
+          <span style="padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;background:#dcfce7;color:#16a34a">🟢 OK: ${ok}</span>
+        </div>
+        <div class="sc-bar"><div class="sc-fill" style="width:${score}%;background:${scoreCol}"></div></div>
+      </div>
+    </div>
+
+    <!-- BK Distribution -->
+    <div class="find-group">
+      <div class="fg-head"><div class="fg-sev sev-o"></div><div class="fg-title">Basiskonzept-Verteilung</div></div>
+      <div style="padding:14px 16px">
+        ${bkDist.map(b=>`<div class="bk-dist-row">
+          <span style="font-size:13px">${BKICONS[b.id]||''}</span>
+          <span class="bkd-label" title="${esc(b.name)}" style="color:${gc(b.id).m}">${esc(b.name)}</span>
+          <div class="bkd-bar-wrap"><div class="bkd-bar" style="width:${b.pct}%;background:${gc(b.id).m}"></div></div>
+          <span class="bkd-val">${b.count} (${b.pct}%)</span>
+        </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Quarterly heatmap -->
+    <div class="find-group">
+      <div class="fg-head"><div class="fg-sev sev-o"></div><div class="fg-title">Quartalsverteilung & Stundenauslastung</div></div>
+      <div style="padding:14px 16px">
+        <div class="qheat-grid">
+          ${QUARTERS.map(({y,q})=>{
+            const key=QK(y,q);
+            const cnt=(SEQ[key]||[]).length;
+            const usedH=(SEQ[key]||[]).reduce((s,id)=>{const lz=LZ.find(l=>l.id===id);return s+(lz?.geschaetzte_unterrichtsstunden||1)},0);
+            const loadPct=Math.min(100,Math.round((usedH/LESSONS_PER_QUARTER)*100));
+            const loadCol=loadPct>100?'#ef4444':loadPct>80?'#f59e0b':'#22c55e';
+            return`<div class="qheat-cell" style="background:rgba(37,99,235,${cnt?Math.min(.8,cnt/10):.05})">
+              <div style="font-size:10px;font-weight:700;color:var(--txt2);margin-bottom:3px">Kl.${y}·${q}</div>
+              <div class="qheat-n" style="color:${cnt?'#2563eb':'var(--txt3)'}">${cnt}</div>
+              <div class="qheat-l">LZ platziert</div>
+              <div style="margin-top:4px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden"><div style="height:100%;width:${loadPct}%;background:${loadCol};border-radius:2px"></div></div>
+              <div style="font-size:9px;color:${loadCol};margin-top:2px">~${usedH}h / ${LESSONS_PER_QUARTER}h</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+
+    ${renderFindingGroups(findings)}
+  `;
+}
+
+function collectFindings(){
+  const findings=[];
+  const pl=allPlaced();
+
+  // 1. Prerequisite violations
+  QUARTERS.forEach(({y,q})=>{
+    const key=QK(y,q);
+    const placed=SEQ[key]||[];
+    const qIdx=getQIdx(key);
+    placed.forEach(id=>{
+      const lz=LZ.find(l=>l.id===id);
+      if(!lz||!lz.voraussetzende_lernziele)return;
+      lz.voraussetzende_lernziele.forEach(rid=>{
+        if(!pl.includes(rid)){
+          findings.push({severity:'advisory',cat:'Voraussetzungen',icon:'📚',id:`prereq-missing-${id}-${rid}`,
+            title:'Voraussetzung nicht platziert',
+            desc:`"${lzTitle(id)}" benötigt "${lzTitle(rid)}" (${rid.replace('GY-78-','')}), das noch nicht im Plan liegt.`,
+            lzRefs:[id,rid],
+            fix:{action:'place_prereq',lzId:rid,afterId:id,key},
+            fixLabel:`"${rid.replace('GY-78-','')}" vor dieser Einheit platzieren`});
+        }else{
+          const rk=findQforLZ(rid);
+          if(rk&&getQIdx(rk)>qIdx){
+            findings.push({severity:'critical',cat:'Reihenfolge',icon:'🔴',id:`order-${id}-${rid}`,
+              title:'Falsche Reihenfolge',
+              desc:`"${lzTitle(id)}" ist in ${y}·${q}, aber Voraussetzung "${lzTitle(rid)}" kommt erst in ${rk}.`,
+              lzRefs:[id,rid],
+              fix:{action:'swap_order',lzId:id,reqId:rid,currentKey:key,reqKey:rk},
+              fixLabel:'Reihenfolge tauschen'});
+          }
+        }
+      });
+    });
+  });
+
+  // 2. Concept anchors
+  getAllConcepts().forEach(c=>{
+    (c.konzeptanker_lernziele||[]).forEach(a=>{
+      if(!pl.includes(a.lernziel_id)){
+        findings.push({severity:'advisory',cat:'Konzeptanker',icon:'⭐',id:`anchor-${a.lernziel_id}`,
+          title:'Konzeptanker fehlt',
+          desc:`"${lzTitle(a.lernziel_id)}" ist Konzeptanker für ${c.id}. ${a.begruendung||''}`,
+          lzRefs:[a.lernziel_id],
+          fix:{action:'add_to_recommended_quarter',lzId:a.lernziel_id},
+          fixLabel:`In empfohlenem Quartal platzieren`});
+      }
+    });
+  });
+
+  // 3. Interleaving gaps
+  pl.forEach(id=>{
+    const lz=LZ.find(l=>l.id===id);
+    if(!lz)return;
+    const lk=findQforLZ(id);
+    const li=getQIdx(lk||'');
+    (lz.interleaving_empfehlung||[]).forEach(pid=>{
+      if(!pl.includes(pid))return;
+      const pk=findQforLZ(pid);
+      const pi=getQIdx(pk||'');
+      const gap=Math.abs(li-pi);
+      if(gap>1){
+        const fid=`interleave-${[id,pid].sort().join('-')}`;
+        if(!findings.find(f=>f.id===fid)){
+          findings.push({severity:'suggestion',cat:'Interleaving',icon:'🔀',id:fid,
+            title:'Interleaving-Empfehlung nicht erfüllt',
+            desc:`"${lzTitle(id)}" und "${lzTitle(pid)}" sollten maximal 1 Quartal auseinanderliegen (aktuell: ${gap}).`,
+            lzRefs:[id,pid],
+            fix:{action:'move_closer',lzId:pid,targetKey:lk||''},
+            fixLabel:`"${pid.replace('GY-78-','')}" näher platzieren`});
+        }
+      }
+    });
+  });
+
+  // 4. Year-level mismatches
+  pl.forEach(id=>{
+    const lz=LZ.find(l=>l.id===id);
+    if(!lz||!lz.empfohlene_klassenstufe)return;
+    const pk=findQforLZ(id);
+    if(!pk)return;
+    const placedYr=pk.split('-')[0];
+    if(placedYr!==lz.empfohlene_klassenstufe){
+      findings.push({severity:'suggestion',cat:'Jahrgangsstufe',icon:'📅',id:`yr-${id}`,
+        title:'Abweichende Jahrgangsstufen-Empfehlung',
+        desc:`"${lzTitle(id)}" empfohlen für Kl.${lz.empfohlene_klassenstufe}, platziert in Kl.${placedYr}.`,
+        lzRefs:[id],
+        fix:{action:'move_to_year',lzId:id,targetYear:lz.empfohlene_klassenstufe},
+        fixLabel:`In Klasse ${lz.empfohlene_klassenstufe} verschieben`});
+    }
+  });
+
+  // 5. Overloaded quarters
+  QUARTERS.forEach(({y,q})=>{
+    const key=QK(y,q);
+    const placed=SEQ[key]||[];
+    const usedH=placed.reduce((s,id)=>{const lz=LZ.find(l=>l.id===id);return s+(lz?.geschaetzte_unterrichtsstunden||1)},0);
+    if(usedH>LESSONS_PER_QUARTER+3){
+      findings.push({severity:'advisory',cat:'Zeitplanung',icon:'⏱️',id:`overload-${key}`,
+        title:`Quartal ${q} Kl.${y} überladen`,
+        desc:`${usedH} Stunden geplant, aber nur ~${LESSONS_PER_QUARTER} verfügbar. Bitte Lernziele auf benachbarte Quartale verteilen.`,
+        lzRefs:[],
+        fix:{action:'balance_quarter',key},
+        fixLabel:'Lernziele auf Nachbarquartal verschieben'});
+    }
+  });
+
+  // 6. BK coverage
+  const e1=BK.filter(b=>b.ebene===1||!b.ebene);
+  const bkDist=calcBKDist();
+  bkDist.forEach(b=>{
+    if(b.count===0){
+      findings.push({severity:'advisory',cat:'BK-Abdeckung',icon:'📋',id:`bk-missing-${b.id}`,
+        title:`Basiskonzept nicht abgedeckt: ${b.name}`,
+        desc:`Kein Lernziel mit primärem BK "${b.name}" ist platziert.`,
+        lzRefs:[]});
+    }
+  });
+
+  // 7. OK items
+  if(!findings.find(f=>f.cat==='Reihenfolge'&&f.severity==='critical')&&pl.length>0)
+    findings.push({severity:'ok',cat:'Reihenfolge',icon:'✅',id:'order-ok',title:'Voraussetzungsreihenfolge korrekt',desc:'Alle platzierten Lernziele respektieren die Abhängigkeitsreihenfolge.',lzRefs:[]});
+
+  return findings;
+}
+
+function calcScore(findings){
+  let s=100;
+  findings.forEach(f=>{if(f.severity==='critical')s-=14;else if(f.severity==='advisory')s-=5;else if(f.severity==='suggestion')s-=2});
+  return Math.max(0,Math.min(100,s));
+}
+
+function calcBKDist(){
+  const pl=allPlaced();
+  const tot=pl.length||1;
+  return BK.filter(b=>b.ebene===1||!b.ebene).map(b=>{
+    const cnt=pl.filter(id=>{const lz=LZ.find(l=>l.id===id);return lz&&(lz.basiskonzepte_primaer||[]).includes(b.id)}).length;
+    return{id:b.id,name:b.kurzbezeichnung||b.bezeichnung||b.name,count:cnt,pct:Math.round((cnt/tot)*100)};
+  });
+}
+
+function renderFindingGroups(findings){
+  const cats=[...new Set(findings.map(f=>f.cat))];
+  const sevOrd={critical:0,advisory:1,suggestion:2,ok:3};
+  cats.sort((a,b)=>{
+    const am=Math.min(...findings.filter(f=>f.cat===a).map(f=>sevOrd[f.severity]));
+    const bm=Math.min(...findings.filter(f=>f.cat===b).map(f=>sevOrd[f.severity]));
+    return am-bm;
+  });
+  return cats.map(cat=>{
+    const cf=findings.filter(f=>f.cat===cat);
+    const ws=cf.reduce((w,f)=>sevOrd[f.severity]<sevOrd[w]?f.severity:w,'ok');
+    return`<div class="find-group">
+      <div class="fg-head"><div class="fg-sev sev-${ws[0]}"></div><div class="fg-title">${esc(cat)}</div><div class="fg-count">${cf.length}</div></div>
+      ${cf.map(f=>`<div class="find-item">
+        <div class="fi-icon">${f.icon}</div>
+        <div class="fi-c">
+          <div class="fi-title">${esc(f.title)}</div>
+          <div class="fi-desc">${esc(f.desc)}</div>
+          ${f.lzRefs&&f.lzRefs.length?`<div class="fi-refs">${f.lzRefs.map(id=>`<span class="lz-chip">${esc(id.replace('GY-78-',''))}</span>`).join('')}</div>`:''}
+          ${f.fix&&!acceptedFixes.has(f.id)?`<div class="fi-action"><button class="accept-btn" onclick="acceptFix('${f.id}')">✓ ${esc(f.fixLabel||'Fix übernehmen')}</button></div>`:''}
+          ${acceptedFixes.has(f.id)?`<div class="fi-action"><span class="accept-btn done">✓ Änderung übernommen</span></div>`:''}
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function acceptFix(findingId){
+  const findings=collectFindings();
+  const f=findings.find(x=>x.id===findingId);
+  if(!f||!f.fix)return;
+  const {action,lzId,reqId,currentKey,reqKey,targetKey,targetYear,key}=f.fix;
+
+  if(action==='place_prereq'){
+    // Place prereq in quarter before current
+    const curIdx=getQIdx(currentKey);
+    const tIdx=Math.max(0,curIdx-1);
+    const tKey=QK(QUARTERS[tIdx].y,QUARTERS[tIdx].q);
+    if(!SEQ[tKey])SEQ[tKey]=[];
+    // Remove from anywhere
+    Object.keys(SEQ).forEach(k=>{SEQ[k]=SEQ[k].filter(id=>id!==lzId)});
+    SEQ[tKey].unshift(lzId);
+  }else if(action==='swap_order'){
+    // Move lzId after reqId
+    const reqQKey=reqKey;
+    const curQKey=currentKey;
+    if(!SEQ[curQKey]||!SEQ[reqQKey])return;
+    SEQ[curQKey]=SEQ[curQKey].filter(id=>id!==lzId);
+    if(!SEQ[reqQKey].includes(lzId))SEQ[reqQKey].push(lzId);
+  }else if(action==='add_to_recommended_quarter'){
+    const lz=LZ.find(l=>l.id===lzId);
+    const yr=lz?.empfohlene_klassenstufe||'7';
+    const q=lz?.empfohlenes_quartal||'Q1';
+    const k=QK(yr,q);
+    if(!SEQ[k])SEQ[k]=[];
+    Object.keys(SEQ).forEach(kk=>{SEQ[kk]=SEQ[kk].filter(id=>id!==lzId)});
+    if(!SEQ[k].includes(lzId))SEQ[k].push(lzId);
+  }else if(action==='move_closer'){
+    const fromKey=findQforLZ(lzId);
+    const toIdx=Math.max(0,Math.min(7,getQIdx(targetKey)+1));
+    const toKey=QK(QUARTERS[toIdx].y,QUARTERS[toIdx].q);
+    if(fromKey){SEQ[fromKey]=SEQ[fromKey].filter(id=>id!==lzId)}
+    if(!SEQ[toKey])SEQ[toKey]=[];
+    if(!SEQ[toKey].includes(lzId))SEQ[toKey].push(lzId);
+  }else if(action==='move_to_year'){
+    const fromKey=findQforLZ(lzId);
+    const lz=LZ.find(l=>l.id===lzId);
+    const q=lz?.empfohlenes_quartal||'Q1';
+    const toKey=QK(targetYear,q);
+    if(fromKey){SEQ[fromKey]=SEQ[fromKey].filter(id=>id!==lzId)}
+    if(!SEQ[toKey])SEQ[toKey]=[];
+    if(!SEQ[toKey].includes(lzId))SEQ[toKey].push(lzId);
+  }else if(action==='balance_quarter'){
+    // Move last 20% to next quarter
+    const placed=SEQ[key]||[];
+    const toMove=placed.slice(Math.ceil(placed.length*.7));
+    const curIdx=getQIdx(key);
+    if(curIdx<7){
+      const nk=QK(QUARTERS[curIdx+1].y,QUARTERS[curIdx+1].q);
+      if(!SEQ[nk])SEQ[nk]=[];
+      SEQ[key]=placed.slice(0,Math.ceil(placed.length*.7));
+      SEQ[nk]=[...toMove,...SEQ[nk]];
+    }
+  }
+
+  acceptedFixes.add(findingId);
+  savePlan();renderTimeline();renderLZList();updatePlanStats();runWarnings();
+  runAnalysis();
+  toast('Vorschlag übernommen','success');
+}
+
+/* ════════════════════════════════════════════════
+   EDITOR VIEW
+════════════════════════════════════════════════ */
+function initEditorList(){
+  const list=document.getElementById('ed-list');
+  const e1=BK.filter(b=>b.ebene===1||!b.ebene);
+  list.innerHTML=e1.map(bk=>{
+    const col=gc(bk.id).m;
+    const tks=bk.teilkonzepte||[];
+    return`<div>
+      <div class="eli" id="eli-${bk.id}" style="color:${col}" onclick="selEditor('${bk.id}')">
+        <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
+        <div style="flex:1"><div class="eli-title">${esc(bk.bezeichnung||bk.name)}</div><div class="eli-sub">Ebene 1</div></div>
+        <span class="mod-badge" id="mod-${bk.id}" style="display:none">✎</span>
+      </div>
+      ${tks.map(tk=>`<div class="eli" id="eli-${tk.id}" style="color:${col};padding-left:26px" onclick="selEditor('${tk.id}')">
+        <div style="width:8px;height:8px;border-radius:50%;background:${col};opacity:.6;flex-shrink:0"></div>
+        <div style="flex:1"><div class="eli-title" style="font-size:10px">${esc(tk.bezeichnung||tk.name)}</div><div class="eli-sub">Ebene 2</div></div>
+        <span class="mod-badge" id="mod-${tk.id}" style="display:none">✎</span>
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+
+function selEditor(id){
+  document.querySelectorAll('.eli').forEach(x=>x.classList.remove('active'));
+  document.getElementById(`eli-${id}`)?.classList.add('active');
+  renderEditorDetail(id);
+}
+
+function renderEditorDetail(id){
+  const c=getAllConcepts().find(x=>x.id===id);
+  if(!c)return;
+  const col=gc(id).m,cll=gc(id).l;
+  const ov=EDITS[id]||{},an=ANNOTS[id]||{};
+  const fv=k=>ov[k]!==undefined?ov[k]:c[k];
+  const isMod=k=>ov[k]!==undefined&&ov[k]!==c[k];
+
+  const detail=document.getElementById('ed-detail');
+  detail.innerHTML=`
+    <div style="max-width:700px">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:18px;padding:14px 18px;background:${cll};border-radius:var(--r3);border:1px solid ${col}33">
+        <span style="font-size:22px">${BKICONS[id]||'●'}</span>
+        <div><div style="font-size:15px;font-weight:800;color:${col}">${esc(c.bezeichnung||c.name)}</div><div style="font-size:10px;color:var(--txt3)">${id}</div></div>
+        <div style="margin-left:auto;display:flex;gap:5px">
+          <button class="btn btn-success" style="font-size:10px;padding:4px 9px" onclick="saveEdits()">💾 Speichern</button>
+          <button class="btn btn-danger" style="font-size:10px;padding:4px 9px" onclick="resetItem('${id}')">↺</button>
+        </div>
+      </div>
+
+      <div class="efsec">
+        <div class="efs-title">Definitionen</div>
+        <div class="fld">
+          <label class="flabel">KMK-Definition</label>
+          <textarea class="finput ${isMod('definition_kmk')?'mod':''}" id="ef-${id}-def" rows="4"
+                    onchange="onEC('${id}','definition_kmk',this.value)">${esc(String(fv('definition_kmk')||fv('definition')||''))}</textarea>
+          <div class="anno"><div class="anno-lbl">📝 Anmerkung</div><textarea class="anno-in" placeholder="Eigene Anmerkung …" onchange="onEA('${id}','definition_kmk',this.value)">${esc(an['definition_kmk']||'')}</textarea></div>
+        </div>
+        ${c.definition_didaktisch?`<div class="fld"><label class="flabel">Didaktische Einordnung</label><textarea class="finput ${isMod('definition_didaktisch')?'mod':''}" rows="4" onchange="onEC('${id}','definition_didaktisch',this.value)">${esc(String(fv('definition_didaktisch')||''))}</textarea> </div>`:''}`+`
+      </div>
+
+      <div class="efsec">
+        <div class="efs-title">Numerische Einschätzungen</div>
+        ${[['transfer_potential','Transferpotenzial'],['complexity_level_gy78','Komplexität Kl. 7/8'],['centrality_estimate','Zentralität']].filter(([k])=>c[k]!==undefined).map(([k,lbl])=>`
+          <div class="fld">
+            <label class="flabel">${lbl}</label>
+            <div class="frange-row" style="color:${col}">
+              <input type="range" class="frange" min="0" max="1" step="0.01" value="${fv(k)||0}"
+                     oninput="onEC('${id}','${k}',parseFloat(this.value));this.nextElementSibling.textContent=Math.round(this.value*100)+'%'">
+              <span class="frange-val" style="color:${col}">${Math.round((fv(k)||0)*100)}%</span>
+            </div>
+          </div>`).join('')}
+      </div>
+
+      ${(()=>{
+        const pp=fv('wesentliche_prinzipien_kmk')||fv('fokus_prinzipien')||[];
+        const k=c.wesentliche_prinzipien_kmk?'wesentliche_prinzipien_kmk':'fokus_prinzipien';
+        if(!pp.length)return'';
+        return`<div class="efsec">
+          <div class="efs-title">Schlüsselprinzipien</div>
+          <div class="fld">
+            <label class="flabel">Prinzipien (kommagetrennt)</label>
+            <input type="text" class="finput ${isMod(k)?'mod':''}" value="${esc(Array.isArray(pp)?pp.join(', '):pp)}"
+                   onchange="onEC('${id}','${k}',this.value.split(',').map(s=>s.trim()).filter(Boolean))">
+          </div>
+        </div>`;
+      })()}
+
+      ${c.sequenzierungsempfehlung?`
+        <div class="efsec">
+          <div class="efs-title">Sequenzierungsempfehlung</div>
+          <div class="fld">
+            <label class="flabel">Empfohlene Phase (nur lesen)</label>
+            <input type="text" class="finput" readonly style="background:var(--bg3)"
+                   value="${esc(c.sequenzierungsempfehlung.empfohlene_phase||c.sequenzierungsempfehlung.empfohlene_phase_ontogenese||'')}">
+          </div>
+          <div class="fld">
+            <label class="flabel">Begründung (nur lesen)</label>
+            <textarea class="finput" rows="3" readonly style="background:var(--bg3)">${esc(c.sequenzierungsempfehlung.begruendung||'')}</textarea>
+          </div>
+          <div class="anno">
+            <div class="anno-lbl">📝 Eigene Anmerkung zur Sequenzierung</div>
+            <textarea class="anno-in" placeholder="Eigene Überlegungen zur Jahresplanung …"
+                      onchange="onEA('${id}','sequenzierung',this.value)">${esc(an['sequenzierung']||'')}</textarea>
+          </div>
+        </div>` : ''}
+
+      ${(c.haeufige_schuelervorstellungen||[]).length?`
+        <div class="efsec">
+          <div class="efs-title">Häufige Schülervorstellungen (${(c.haeufige_schuelervorstellungen||[]).length})</div>
+          <div style="font-size:11px;color:var(--txt3);margin-bottom:9px">Fehlvorstellungen sind im vollständigen Datensatz editierbar. Hier können Sie Klassennotizen anfügen.</div>
+          ${(c.haeufige_schuelervorstellungen||[]).map((m,i)=>`
+            <div style="padding:9px;background:var(--bg3);border-radius:var(--r);margin-bottom:7px;border:1px solid var(--border)">
+              <div style="font-size:11px;font-weight:600;color:#dc2626;margin-bottom:2px">✗ ${esc(m.fehlvorstellung)}</div>
+              <div class="anno" style="margin-top:5px">
+                <div class="anno-lbl">📝 Eigene Beobachtung</div>
+                <textarea class="anno-in" placeholder="Beobachtungen in meiner Klasse …"
+                          onchange="onEA('${id}','misc_${i}',this.value)">${esc(an[`misc_${i}`]||'')}</textarea>
+              </div>
+            </div>`).join('')}
+        </div>` : ''}
+
+      <div class="efsec">
+        <div class="efs-title" style="display:flex;align-items:center;justify-content:space-between">
+          <span>JSON-Rohansicht</span>
+          <button class="btn" style="font-size:10px;padding:3px 8px;background:var(--bg3);border:1px solid var(--border);color:var(--txt2)"
+                  onclick="copyJSON('jraw-${id}')">📋 Kopieren</button>
+        </div>
+        <pre id="jraw-${id}" style="font-size:10px;color:var(--txt2);background:var(--bg3);padding:11px;border-radius:var(--r);overflow:auto;max-height:180px;line-height:1.5;white-space:pre-wrap;word-break:break-word">${esc(JSON.stringify(c,null,2))}</pre>
+      </div>
+    </div>
+  `;
+}
+
+function onEC(id,k,v){
+  if(!EDITS[id])EDITS[id]={};
+  EDITS[id][k]=v;
+  const mb=document.getElementById(`mod-${id}`);
+  if(mb)mb.style.display='inline';
+  document.getElementById('s-mod').style.display='flex';
+}
+
+function onEA(id,k,v){
+  if(!ANNOTS[id])ANNOTS[id]={};
+  ANNOTS[id][k]=v;
+  document.getElementById('s-mod').style.display='flex';
+}
+
+function resetItem(id){
+  EDITS[id]={};ANNOTS[id]={};
+  const mb=document.getElementById(`mod-${id}`);
+  if(mb)mb.style.display='none';
+  renderEditorDetail(id);
+  toast('Änderungen zurückgesetzt','warning');
+}
+
+function resetAllEdits(){
+  if(!confirm('Alle Änderungen und Anmerkungen zurücksetzen?'))return;
+  getAllConcepts().forEach(c=>{EDITS[c.id]={};ANNOTS[c.id]={}});
+  document.querySelectorAll('.mod-badge').forEach(el=>el.style.display='none');
+  document.getElementById('s-mod').style.display='none';
+  const sel=document.querySelector('.eli.active');
+  if(sel){const id=sel.id.replace('eli-','');renderEditorDetail(id)}
+  toast('Alle Änderungen zurückgesetzt','warning');
+}
+
+function saveEdits(){
+  try{
+    localStorage.setItem('lk_edits',JSON.stringify(EDITS));
+    localStorage.setItem('lk_annots',JSON.stringify(ANNOTS));
+    document.getElementById('s-mod').style.display='none';
+    toast('Änderungen gespeichert','success');
+  }catch(e){toast('Speichern fehlgeschlagen: '+e.message,'error')}
+}
+
+function copyJSON(elId){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  navigator.clipboard.writeText(el.textContent)
+    .then(()=>toast('In Zwischenablage kopiert','success'))
+    .catch(()=>toast('Kopieren fehlgeschlagen','error'));
+}
+
+/* ════════════════════════════════════════════════
+   EXPORT
+════════════════════════════════════════════════ */
+function exportJSON(){
+  const pl=allPlaced();
+  if(!pl.length){toast('Keine Lernziele im Plan','warning');return}
+  const findings=collectFindings();
+  const score=calcScore(findings);
+  const data={
+    metadaten:{titel:'LehrplanKompass – Sequenzplan Export',erstellt:new Date().toISOString(),
+      bundesland:'Thüringen',schulform:'Gymnasium',klassenstufen:'7–8',fach:'Biologie',version:'2.0',qualitaetsscore:score},
+    zusammenfassung:{gesamt_lz:LZ.length,platzierte_lz:pl.length,qualitaetsscore:score,
+      kritisch:findings.filter(f=>f.severity==='critical').length,hinweise:findings.filter(f=>f.severity==='advisory').length},
+    sequenzplan:{},bk_verteilung:calcBKDist(),befunde:findings,
+    schwerpunkte:EMPH,aenderungen:EDITS,anmerkungen:ANNOTS
+  };
+  QUARTERS.forEach(({y,q})=>{
+    const key=QK(y,q);
+    const placed=SEQ[key]||[];
+    data.sequenzplan[key]={label:`Klasse ${y} · Quartal ${q.replace('Q','')}`,lernziele:placed.map(id=>{
+      const lz=LZ.find(l=>l.id===id);
+      return lz?{id:lz.id,kurzbezeichnung:lz.kurzbezeichnung,bk:(lz.basiskonzepte_primaer||[])[0],
+        ist_konzeptanker:lz.ist_konzeptanker,kognition:lz.kognitive_anforderung,stunden:lz.geschaetzte_unterrichtsstunden}:{id};
+    })};
+  });
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`LehrplanKompass_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();URL.revokeObjectURL(url);
+  closeModal('exp-modal');toast('JSON exportiert','success');
+}
+
+function exportDOCX(){
+  const pl=allPlaced();
+  if(!pl.length){toast('Keine Lernziele im Plan','warning');return}
+
+  const findings=collectFindings();
+  const score=calcScore(findings);
+  const bkDist=calcBKDist();
+  const date=new Date().toLocaleDateString('de-DE',{year:'numeric',month:'long',day:'numeric'});
+
+  /* Helper: safe text for RTF – handles all Unicode characters properly */
+  const rtfStr=s=>{
+    if(s===null||s===undefined)return'';
+    return String(s).split('').map(ch=>{
+      const code=ch.charCodeAt(0);
+      if(code<128)return ch.replace(/\\/g,'\\\\').replace(/\{/g,'\\{').replace(/\}/g,'\\}');
+      return`\\u${code}?`;
+    }).join('');
+  };
+
+  const H1=t=>`\\pard\\sb360\\sa120\\keepn\\b\\f0\\fs36\\cf1 ${rtfStr(t)}\\b0\\par\n`;
+  const H2=t=>`\\pard\\sb280\\sa80\\keepn\\b\\f0\\fs28\\cf2 ${rtfStr(t)}\\b0\\par\n`;
+  const H3=t=>`\\pard\\sb200\\sa60\\keepn\\b\\f0\\fs24\\cf1 ${rtfStr(t)}\\b0\\par\n`;
+  const P=t=>`\\pard\\sb60\\sa80\\f0\\fs20\\cf1 ${rtfStr(t)}\\par\n`;
+  const B=(t,rest='')=>`\\b ${rtfStr(t)}\\b0 ${rtfStr(rest)}`;
+  const BULL=t=>`\\pard\\li400\\fi-200\\sb40\\sa40\\f0\\fs20\\cf1 \\bullet\\tab ${rtfStr(t)}\\par\n`;
+  const HR=()=>`\\pard\\sb160\\sa160\\brdrb\\brdrs\\brdrw10\\brsp60 \\par\n`;
+  const PAGE=()=>`\\page\n`;
+  const INFO=(label,val)=>`\\pard\\sb40\\sa40\\f0\\fs20\\cf1 \\b ${rtfStr(label)}: \\b0 ${rtfStr(val)}\\par\n`;
+
+  const scoreLabel=score>=85?'Ausgezeichnet':score>=70?'Gut':score>=50?'Verbesserungswürdig':'Kritisch';
+
+  // Score bar as ASCII art in RTF
+  const scoreBar=(pct,width=30)=>{
+    const filled=Math.round(pct/100*width);
+    return '['+('█'.repeat(filled))+('░'.repeat(width-filled))+'] '+pct+'%';
+  };
+
+  // BK distribution bar
+  const distBar=(pct,width=20)=>{
+    const filled=Math.round(pct/100*width);
+    return('['+('▓'.repeat(filled))+('░'.repeat(width-filled))+'] '+pct+'%');
+  };
+
+  let rtf='{\\rtf1\\ansi\\ansicpg1252\\deff0\n';
+  rtf+='{\\fonttbl{\\f0\\froman\\fcharset0 Times New Roman;}{\\f1\\fswiss\\fcharset0 Arial;}{\\f2\\fmodern\\fcharset0 Courier New;}}\n';
+  rtf+='{\\colortbl;\\red15\\green23\\blue42;\\red13\\green148\\blue136;\\red234\\green88\\blue12;\\red37\\green99\\blue235;\\red124\\green58\\blue237;\\red22\\green163\\blue74;\\red220\\green38\\blue38;\\red245\\green158\\blue11;\\red100\\green116\\blue139;}\n';
+  rtf+='\\widowctrl\\hyphauto\n';
+  rtf+='\\margl1440\\margr1440\\margt1440\\margb1440\n';
+
+  /* ── COVER PAGE ── */
+  rtf+=`\\pard\\sb2000\\sa200\\qc\\b\\f1\\fs64\\cf2 LehrplanKompass\\b0\\par\n`;
+  rtf+=`\\pard\\sa200\\qc\\f1\\fs32\\cf1 Sequenzplan-Bericht\\par\n`;
+  rtf+=`\\pard\\sa100\\qc\\f0\\fs24\\cf9 Biologie \\u8211? Gymnasium Klassen 7\\u2013?8 \\u8226? ${rtfStr('Thüringen')}\\par\n`;
+  rtf+=`\\pard\\sa100\\qc\\f0\\fs20\\cf9 Erstellt am ${rtfStr(date)}\\par\n`;
+  rtf+=`\\pard\\sb600\\sa200\\qc\\f1\\fs28\\cf1 `;
+  rtf+=`${rtfStr('Qualitätsscore: ')}\\b\\fs36\\cf${score>=70?6:8} ${score}/100 \\u2013? ${rtfStr(scoreLabel)}\\b0\\f0\\fs20\\cf1\\par\n`;
+  rtf+=PAGE();
+
+  /* ── TABLE OF CONTENTS (manual) ── */
+  rtf+=H1('Inhaltsverzeichnis');
+  const toc=[
+    ['1.','Zusammenfassung'],['2.','Sequenzplan – Quartalübersicht'],
+    ['3.','Basiskonzept-Verteilung und Schwerpunkte'],
+    ['4.','Stunden- und Zeitplanung'],
+    ['5.','Qualitätsanalyse und Befunde'],
+    ['6.','Lernziel-Details pro Quartal'],
+    ['7.','Basiskonzepte – Kurzübersicht'],
+    ['8.','Eigene Anmerkungen']
+  ];
+  toc.forEach(([num,title])=>{
+    rtf+=`\\pard\\sb40\\sa40\\f0\\fs22\\cf1 ${rtfStr(num)}  ${rtfStr(title)}\\par\n`;
+  });
+  rtf+=PAGE();
+
+  /* ── 1. ZUSAMMENFASSUNG ── */
+  rtf+=H1('1. Zusammenfassung');
+  rtf+=P(`Dieser Bericht dokumentiert den mit LehrplanKompass erstellten Sequenzplan für den Biologieunterricht der Klassen 7 und 8 am Thüringer Gymnasium. Die Planung orientiert sich an den fünf KMK-Basiskonzepten und dem optimierten Lernzieldatensatz (Version 2.0).`);
+  rtf+=H2('Kerndaten');
+  rtf+=INFO('Platzierte Lernziele',`${pl.length} von ${LZ.length} gesamt (${Math.round(pl.length/LZ.length*100)}%)`);
+  rtf+=INFO('Qualitätsscore',`${score}/100 – ${scoreLabel}`);
+  rtf+=INFO('Kritische Befunde',`${findings.filter(f=>f.severity==='critical').length}`);
+  rtf+=INFO('Hinweise',`${findings.filter(f=>f.severity==='advisory').length}`);
+  rtf+=INFO('Vorschläge',`${findings.filter(f=>f.severity==='suggestion').length}`);
+  rtf+=INFO('Planungsmodus',planMode==='quarter'?'Quartals-Ansicht':'Einzelstunden-Ansicht');
+  rtf+=INFO('Exportdatum',date);
+  rtf+=H2('Qualitätsscore-Übersicht');
+  rtf+=`\\pard\\sb60\\sa80\\f2\\fs18\\cf1 ${rtfStr(scoreBar(score))}\\par\n`;
+  rtf+=P(`Bewertungskriterien: Voraussetzungsreihenfolge (-14 Pkt. je kritischem Fehler), Konzeptanker-Platzierung (-5 Pkt.), Basiskonzept-Abdeckung (-5 Pkt.), Interleaving-Empfehlungen (-2 Pkt.), Stundenkontingent (-3 Pkt.).`);
+  rtf+=HR();
+
+  /* ── 2. SEQUENZPLAN ── */
+  rtf+=H1('2. Sequenzplan – Quartalübersicht');
+  rtf+=P('Die folgende Übersicht zeigt alle geplanten Lernziele nach Quartal und Klasse, einschließlich geschätztem Stundenaufwand und Basiskonzept-Zuordnung.');
+  ['7','8'].forEach(yr=>{
+    rtf+=H2(`Klasse ${yr} – Schuljahr ${yr==='7'?'1':'2'}`);
+    ['Q1','Q2','Q3','Q4'].forEach(q=>{
+      const key=QK(yr,q);
+      const placed=SEQ[key]||[];
+      const usedH=placed.reduce((s,id)=>{const lz=LZ.find(l=>l.id===id);return s+(lz?.geschaetzte_unterrichtsstunden||1)},0);
+      const loadStatus=usedH>LESSONS_PER_QUARTER+3?'ÜBERLADEN':usedH>LESSONS_PER_QUARTER?'Voll':'OK';
+      rtf+=H3(`Quartal ${q.replace('Q','')} | ${placed.length} Lernziele | ~${usedH}h / ${LESSONS_PER_QUARTER}h verfügbar [${loadStatus}]`);
+      if(!placed.length){rtf+=P('(Keine Lernziele geplant)');return}
+      // BK summary for this quarter
+      const bkCQ={};
+      placed.forEach(id=>{const lz=LZ.find(l=>l.id===id);const b=(lz?.basiskonzepte_primaer||[])[0];if(b)bkCQ[b]=(bkCQ[b]||0)+1});
+      rtf+=P(`Basiskonzept-Verteilung: ${Object.entries(bkCQ).map(([b,n])=>`${bkShort(b)}: ${n}`).join(' | ')}`);
+      placed.forEach(id=>{
+        const lz=LZ.find(l=>l.id===id);
+        if(!lz){rtf+=BULL(id);return}
+        const bk=bkShort((lz.basiskonzepte_primaer||[])[0]);
+        const anchor=lz.ist_konzeptanker?'[KONZEPTANKER] ':'';
+        const prak=lz.ist_praktisch?'[Praktisch] ':'';
+        const kognStr={reproduktion_und_verstaendnis:'Repro/Verst',anwendung:'Anwendung',analyse_und_bewertung:'Analyse',synthese:'Synthese'}[lz.kognitive_anforderung]||lz.kognitive_anforderung||'';
+        rtf+=BULL(`${anchor}${prak}${lz.kurzbezeichnung||lz.id.replace('GY-78-','')}  |  BK: ${bk}  |  ${lz.geschaetzte_unterrichtsstunden||1}h  |  ${kognStr}`);
+      });
+    });
+    rtf+=HR();
+  });
+
+  /* ── 3. BK VERTEILUNG ── */
+  rtf+=H1('3. Basiskonzept-Verteilung und Schwerpunkte');
+  rtf+=P('Die folgende Tabelle zeigt die Verteilung der platzierten Lernziele auf die fünf KMK-Basiskonzepte sowie die konfigurierten Schwerpunkte.');
+  rtf+=H2('Istzustand der Verteilung');
+  bkDist.forEach(b=>{
+    rtf+=`\\pard\\sb60\\sa20\\f0\\fs20\\cf1 \\b ${rtfStr(b.name)}\\b0\\par\n`;
+    rtf+=`\\pard\\sb20\\sa60\\f2\\fs18\\cf1 ${rtfStr(distBar(b.pct))} ${rtfStr(`${b.count} Lernziele`)}\\par\n`;
+  });
+  rtf+=H2('Konfigurierte Schwerpunkte (Emphasis-Einstellungen)');
+  BK.filter(b=>b.ebene===1||!b.ebene).forEach(b=>{
+    const emph=EMPH[b.id]||50;
+    rtf+=`\\pard\\sb60\\sa20\\f0\\fs20\\cf1 \\b ${rtfStr(b.kurzbezeichnung||b.bezeichnung||b.id)}\\b0\\par\n`;
+    rtf+=`\\pard\\sb20\\sa60\\f2\\fs18\\cf1 ${rtfStr(distBar(emph))} ${emph}% ${rtfStr('gewichtet')}\\par\n`;
+  });
+  rtf+=HR();
+
+  /* ── 4. ZEITPLANUNG ── */
+  rtf+=H1('4. Stunden- und Zeitplanung');
+  rtf+=P(`Pro Schuljahr stehen etwa ${LESSONS_PER_YEAR} Unterrichtsstunden zur Verfügung, verteilt auf 4 Quartale mit je ~${LESSONS_PER_QUARTER} Stunden. Die folgende Tabelle zeigt die Auslastung je Quartal.`);
+  rtf+=H2('Quartalsauslastung');
+  ['7','8'].forEach(yr=>{
+    rtf+=H3(`Klasse ${yr}`);
+    ['Q1','Q2','Q3','Q4'].forEach(q=>{
+      const key=QK(yr,q);
+      const placed=SEQ[key]||[];
+      const usedH=placed.reduce((s,id)=>{const lz=LZ.find(l=>l.id===id);return s+(lz?.geschaetzte_unterrichtsstunden||1)},0);
+      const pct=Math.min(100,Math.round(usedH/LESSONS_PER_QUARTER*100));
+      const status=usedH>LESSONS_PER_QUARTER+3?'ÜBERLADEN':usedH>LESSONS_PER_QUARTER?'Knapp':'Gut';
+      rtf+=`\\pard\\sb60\\sa20\\f0\\fs20\\cf1 \\b ${rtfStr(q)}\\b0\\par\n`;
+      rtf+=`\\pard\\sb20\\sa60\\f2\\fs18\\cf1 ${rtfStr(distBar(pct,25))} ${usedH}h / ${LESSONS_PER_QUARTER}h [${rtfStr(status)}]\\par\n`;
+    });
+  });
+  rtf+=HR();
+
+  /* ── 5. QUALITÄTSANALYSE ── */
+  rtf+=H1('5. Qualitätsanalyse und Befunde');
+  rtf+=P(`Gesamtbewertung: ${score}/100 Punkte – ${scoreLabel}`);
+  rtf+=`\\pard\\sb60\\sa120\\f2\\fs20\\cf1 ${rtfStr(scoreBar(score))}\\par\n`;
+  const sevGroups=[
+    {sev:'critical',label:'Kritische Befunde (sofortiger Handlungsbedarf)',icon:'[!]'},
+    {sev:'advisory',label:'Hinweise (sollten überprüft werden)',icon:'[~]'},
+    {sev:'suggestion',label:'Vorschläge (zur Optimierung)',icon:'[i]'},
+    {sev:'ok',label:'Korrekte Aspekte',icon:'[OK]'}
+  ];
+  sevGroups.forEach(({sev,label,icon})=>{
+    const group=findings.filter(f=>f.severity===sev);
+    if(!group.length)return;
+    rtf+=H2(`${label} (${group.length})`);
+    group.forEach(f=>{
+      rtf+=BULL(`${icon} ${f.title}`);
+      rtf+=`\\pard\\li600\\sb20\\sa60\\f0\\fs18\\cf9 ${rtfStr(f.desc)}\\par\n`;
+      if(f.fixLabel)rtf+=`\\pard\\li600\\sb20\\sa80\\f0\\fs18\\cf6 Empfohlene Massnahme: ${rtfStr(f.fixLabel)}\\par\n`;
+    });
+  });
+  rtf+=HR();
+
+  /* ── 6. LERNZIEL-DETAILS ── */
+  rtf+=H1('6. Lernziel-Details pro Quartal');
+  ['7','8'].forEach(yr=>{
+    rtf+=H2(`Klasse ${yr}`);
+    ['Q1','Q2','Q3','Q4'].forEach(q=>{
+      const key=QK(yr,q);
+      const placed=SEQ[key]||[];
+      rtf+=H3(`Quartal ${q.replace('Q','')} (${placed.length} Lernziele)`);
+      if(!placed.length){rtf+=P('Keine Lernziele für dieses Quartal geplant.');return}
+      placed.forEach((id,idx)=>{
+        const lz=LZ.find(l=>l.id===id);
+        if(!lz)return;
+        rtf+=`\\pard\\sb120\\sa20\\b\\f0\\fs22\\cf2 ${idx+1}. ${rtfStr(lz.kurzbezeichnung||lz.id.replace('GY-78-',''))}\\b0\\par\n`;
+        rtf+=INFO('Lernziel-ID',lz.id);
+        rtf+=INFO('Originaltext',lz.originaltext||'–');
+        rtf+=INFO('Primäres Basiskonzept',bkShort((lz.basiskonzepte_primaer||[])[0]));
+        if((lz.basiskonzepte_sekundaer||[]).length)rtf+=INFO('Sekundäre BK',(lz.basiskonzepte_sekundaer||[]).map(b=>bkShort(b)).join(', '));
+        rtf+=INFO('Kognitive Anforderung',({reproduktion_und_verstaendnis:'Reproduktion/Verständnis',anwendung:'Anwendung',analyse_und_bewertung:'Analyse und Bewertung',synthese:'Synthese'}[lz.kognitive_anforderung])||lz.kognitive_anforderung||'–');
+        rtf+=INFO('Geschätzte Stunden',`${lz.geschaetzte_unterrichtsstunden||1} Unterrichtsstunden`);
+        rtf+=INFO('Systemebene',`${lz.systemebene_primaer||'–'}${lz.systemebene_sekundaer?' → '+lz.systemebene_sekundaer:''}`);
+        if(lz.ist_konzeptanker)rtf+=`\\pard\\sb40\\sa40\\f0\\fs18\\cf8 ${rtfStr('[KONZEPTANKER: '+(lz.konzeptanker_begruendung||'')+']')}\\par\n`;
+        if((lz.voraussetzende_lernziele||[]).length)rtf+=INFO('Voraussetzende LZ',(lz.voraussetzende_lernziele||[]).join(', '));
+        if(lz.anmerkung)rtf+=INFO('Anmerkung',lz.anmerkung);
+        rtf+=`\\pard\\sb60\\sa20\\f0\\fs18 \\par\n`;
+      });
+    });
+    rtf+=HR();
+  });
+
+  /* ── 7. BK KURZÜBERSICHT ── */
+  rtf+=H1('7. Basiskonzepte – Kurzübersicht');
+  rtf+=P('Die folgenden fünf Basiskonzepte bilden die konzeptionelle Grundlage dieses Lehrplans gemäß KMK-Bildungsstandards Biologie (Abschnitt 2.5).');
+  const e1=BK.filter(b=>b.ebene===1||!b.ebene);
+  e1.forEach(bk=>{
+    rtf+=H2(`${bk.kurzbezeichnung||bk.bezeichnung||bk.name}`);
+    rtf+=P(bk.definition_kmk||bk.definition||'–');
+    const pp=bk.wesentliche_prinzipien_kmk||[];
+    if(pp.length){rtf+=`\\pard\\sb60\\sa20\\f0\\fs20\\cf1 \\b Schluesselprinzipien:\\b0\\par\n`;pp.forEach(p=>rtf+=BULL(p))}
+    const seq=bk.sequenzierungsempfehlung;
+    if(seq?.empfohlene_phase)rtf+=INFO('Empfohlene Phase',seq.empfohlene_phase||seq.empfohlene_phase_ontogenese||'–');
+    // Placed LZ count for this BK
+    const bkCount=pl.filter(id=>{const lz=LZ.find(l=>l.id===id);return lz&&(lz.basiskonzepte_primaer||[]).includes(bk.id)}).length;
+    rtf+=INFO('Im Plan platziert',`${bkCount} Lernziele`);
+    rtf+=INFO('Emphasis-Einstellung',`${EMPH[bk.id]||50}%`);
+    const mc=bk.haeufige_schuelervorstellungen||[];
+    if(mc.length){
+      rtf+=`\\pard\\sb80\\sa20\\f0\\fs20\\cf1 \\b Haeufige Fachkonzepte (${mc.length}):  \\b0\\par\n`;
+      mc.slice(0,3).forEach(m=>{
+        rtf+=BULL(`Fehlvorstellung: ${m.fehlvorstellung}`);
+        rtf+=`\\pard\\li600\\sb10\\sa30\\f0\\fs18\\cf6 Korrekte Vorstellung: ${rtfStr(m.korrekte_vorstellung)}\\par\n`;
+      });
+    }
+  });
+  rtf+=HR();
+
+  /* ── 8. ANMERKUNGEN ── */
+  const hasAnnots=Object.values(ANNOTS).some(obj=>Object.values(obj).some(v=>v&&String(v).trim()));
+  if(hasAnnots){
+    rtf+=H1('8. Eigene Anmerkungen und Notizen');
+    rtf+=P('Die folgenden Anmerkungen wurden im Datensatz-Editor erfasst.');
+    Object.entries(ANNOTS).forEach(([bkId,anns])=>{
+      const relevant=Object.entries(anns).filter(([,v])=>v&&String(v).trim());
+      if(!relevant.length)return;
+      const c=getAllConcepts().find(x=>x.id===bkId);
+      rtf+=H3(c?(c.bezeichnung||c.name):bkId);
+      relevant.forEach(([k,v])=>rtf+=BULL(`${k}: ${String(v)}`));
+    });
+    rtf+=HR();
+  }
+
+  /* ── FOOTER ── */
+  rtf+=PAGE();
+  rtf+=`\\pard\\sa200\\qc\\f0\\fs16\\cf9 Erstellt mit LehrplanKompass \\u8226? ${rtfStr('Thüringen')} \\u8226? Gymnasium Biologie Kl. 7\\u2013?8 \\u8226? ${rtfStr(date)}\\par\n`;
+  rtf+='}';
+
+  const blob=new Blob([rtf],{type:'application/rtf'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`LehrplanKompass_Bericht_${new Date().toISOString().slice(0,10)}.rtf`;
+  a.click();URL.revokeObjectURL(url);
+  closeModal('exp-modal');
+  toast('Word-Dokument exportiert (als .rtf – direkt in Word öffnen)','success');
+}
+
+/* ════════════════════════════════════════════════
+   KEYBOARD SHORTCUTS & RESIZE
+════════════════════════════════════════════════ */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeCP();document.querySelectorAll('.modal-ov.open').forEach(m=>m.classList.remove('open'))}
+  if(e.ctrlKey&&e.key==='s'){e.preventDefault();saveEdits()}
+  if(e.ctrlKey&&e.key==='e'){e.preventDefault();openModal('exp-modal')}
+});
+
+window.addEventListener('resize',()=>{
+  if(document.getElementById('vnet').classList.contains('active'))resizeNet();
+});
+
+/* ─── START ─── */
+window.addEventListener('load',init);
+</script>
+</body>
+</html>

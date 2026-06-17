@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evolutionsbezug Biologie – Thüringen Gymnasium 7/8</title>
+<style>
+  :root {
+    --primary: #2c5f2e;
+    --primary-light: #4a9e4e;
+    --primary-pale: #e8f5e9;
+    --secondary: #1565c0;
+    --secondary-pale: #e3f2fd;
+    --accent: #f57c00;
+    --accent-pale: #fff3e0;
+    --danger: #c62828;
+    --danger-pale: #ffebee;
+    --success: #2e7d32;
+    --neutral: #546e7a;
+    --neutral-pale: #eceff1;
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --border: #cfd8dc;
+    --text: #1a2327;
+    --text-muted: #607d8b;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --transition: 0.2s ease;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  #topbar {
+    background: linear-gradient(135deg, var(--primary) 0%, #1b4332 100%);
+    color: white; padding: 0 24px;
+    display: flex; align-items: center; gap: 12px;
+    height: 60px; position: sticky; top: 0; z-index: 100;
+    box-shadow: var(--shadow-md);
+  }
+  #topbar h1 { font-size: 1rem; font-weight: 700; flex: 1; letter-spacing: 0.01em; }
+  #topbar h1 span { opacity: 0.7; font-weight: 400; font-size: 0.8rem; display: block; }
+  .topbar-btn {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    color: white; padding: 7px 13px; border-radius: var(--radius-sm);
+    cursor: pointer; font-size: 0.8rem; font-weight: 600;
+    transition: var(--transition); white-space: nowrap;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .topbar-btn:hover { background: rgba(255,255,255,0.28); }
+  .topbar-btn.accent { background: var(--accent); border-color: var(--accent); }
+  .topbar-btn.accent:hover { background: #e65100; }
+
+  #loading-overlay {
+    position: fixed; inset: 0; background: rgba(255,255,255,0.92);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; gap: 16px;
+  }
+  #loading-overlay.hidden { display: none; }
+  .spinner {
+    width: 44px; height: 44px; border: 4px solid var(--border);
+    border-top-color: var(--primary); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: var(--text-muted); font-size: 0.9rem; }
+
+  #app { display: flex; height: calc(100vh - 60px); overflow: hidden; }
+
+  #sidebar {
+    width: 290px; min-width: 260px; background: var(--surface);
+    border-right: 1px solid var(--border); overflow-y: auto;
+    display: flex; flex-direction: column;
+    transition: width 0.25s ease, min-width 0.25s ease;
+  }
+  #sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; }
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  #content-area { flex: 1; overflow-y: auto; padding: 20px; }
+
+  .sidebar-section { border-bottom: 1px solid var(--border); }
+  .sidebar-header {
+    padding: 11px 16px; font-weight: 700; font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted);
+    background: var(--bg); cursor: pointer; display: flex;
+    align-items: center; justify-content: space-between; user-select: none;
+  }
+  .sidebar-header:hover { background: var(--neutral-pale); }
+  .sidebar-body { padding: 12px 14px; }
+  .sidebar-body.hidden { display: none; }
+
+  #search-wrap { position: relative; }
+  #search-input {
+    width: 100%; padding: 8px 12px 8px 32px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 0.88rem; background: var(--bg); color: var(--text);
+    transition: var(--transition);
+  }
+  #search-input:focus { outline: none; border-color: var(--primary-light); background: white; }
+  .search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); font-size: 0.85rem; color: var(--text-muted); pointer-events: none; }
+
+  .filter-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); margin: 8px 0 5px; display: block; text-transform: uppercase; letter-spacing: 0.04em; }
+  .filter-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 4px; }
+  .chip {
+    padding: 3px 9px; border-radius: 20px; font-size: 0.73rem;
+    font-weight: 600; cursor: pointer; border: 1.5px solid var(--border);
+    background: var(--surface); color: var(--text-muted);
+    transition: var(--transition); white-space: nowrap; user-select: none;
+  }
+  .chip:hover { border-color: var(--primary-light); color: var(--primary); }
+  .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .chip.r1.active { background: #388e3c; border-color: #388e3c; }
+  .chip.r2.active { background: #e65100; border-color: #e65100; }
+  .chip.r3.active { background: #c62828; border-color: #c62828; }
+  .chip.fav.active { background: #c2185b; border-color: #c2185b; }
+  .chip.inc.active { background: #c62828; border-color: #c62828; }
+  .chip.edited.active { background: #1565c0; border-color: #1565c0; }
+
+  select.filter-select {
+    width: 100%; padding: 7px 10px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 0.83rem;
+    background: var(--bg); color: var(--text); cursor: pointer; margin-bottom: 2px;
+  }
+  select.filter-select:focus { outline: none; border-color: var(--primary-light); }
+
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 0; font-size: 0.8rem; color: var(--text-muted); }
+  .stat-num { font-weight: 700; color: var(--primary); }
+  .stat-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 4px; }
+  .stat-bar-inner { height: 4px; border-radius: 2px; transition: width 0.4s ease; }
+
+  canvas#chart-canvas { width: 100%; height: 150px; display: block; }
+
+  #toolbar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 9px 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .tb-label { font-size: 0.78rem; font-weight: 700; color: var(--text-muted); }
+  .tb-btn {
+    padding: 5px 11px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); background: var(--surface);
+    cursor: pointer; font-size: 0.8rem; font-weight: 600;
+    color: var(--text-muted); transition: var(--transition);
+    display: flex; align-items: center; gap: 4px;
+  }
+  .tb-btn:hover { background: var(--neutral-pale); border-color: var(--neutral); color: var(--text); }
+  #sort-select {
+    padding: 5px 9px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 0.8rem;
+    background: var(--surface); cursor: pointer; color: var(--text);
+  }
+  #view-toggle { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  #view-toggle button {
+    padding: 5px 11px; border: none; background: var(--surface);
+    cursor: pointer; font-size: 0.85rem; transition: var(--transition); color: var(--text-muted);
+  }
+  #view-toggle button.active { background: var(--primary); color: white; }
+  #result-count { font-size: 0.8rem; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+
+  #card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 15px;
+  }
+  #card-grid.list-view { grid-template-columns: 1fr; }
+
+  .card {
+    background: var(--surface); border-radius: var(--radius);
+    border: 1.5px solid var(--border); box-shadow: var(--shadow-sm);
+    transition: box-shadow var(--transition), border-color var(--transition);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .card:hover { box-shadow: var(--shadow-md); border-color: #b0bec5; }
+  .card.is-favorite { border-color: #e91e63; border-width: 2px; }
+  .card.is-incorrect { border-color: var(--danger); border-width: 2px; }
+  .card.is-favorite.is-incorrect { border-color: #7b1fa2; }
+  .card.is-edited { box-shadow: 0 0 0 2px rgba(21,101,192,0.25), var(--shadow-sm); }
+
+  .card-header {
+    padding: 11px 13px 9px; background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .card-id {
+    font-family: 'Courier New', monospace; font-size: 0.7rem;
+    color: var(--text-muted); font-weight: 700;
+    background: var(--neutral-pale); padding: 2px 6px;
+    border-radius: 4px; white-space: nowrap; flex-shrink: 0; margin-top: 2px;
+  }
+  .card-titles { flex: 1; min-width: 0; }
+  .card-thema { font-size: 0.7rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .card-unterthema { font-size: 0.82rem; color: var(--primary); font-weight: 700; line-height: 1.3; }
+  .card-actions { display: flex; gap: 3px; flex-shrink: 0; }
+  .icon-btn {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: none; background: transparent; cursor: pointer;
+    font-size: 0.95rem; display: flex; align-items: center; justify-content: center;
+    transition: var(--transition); color: var(--text-muted);
+  }
+  .icon-btn:hover { background: var(--neutral-pale); }
+  .icon-btn.fav-btn.active { color: #e91e63; }
+  .icon-btn.inc-btn.active { color: var(--danger); }
+  .icon-btn.edit-btn:hover { color: var(--secondary); background: var(--secondary-pale); }
+
+  .card-body { padding: 11px 13px; flex: 1; }
+  .lernziel-text { font-size: 0.88rem; line-height: 1.5; color: var(--text); font-weight: 500; margin-bottom: 9px; }
+
+  .relevance-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 20px; font-size: 0.73rem; font-weight: 700; margin-bottom: 8px;
+  }
+  .relevance-badge.r1 { background: #e8f5e9; color: #2e7d32; }
+  .relevance-badge.r2 { background: #fff3e0; color: #e65100; }
+  .relevance-badge.r3 { background: #ffebee; color: #c62828; }
+  .rel-dots { display: flex; gap: 3px; }
+  .rel-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+  .r1 .rel-dot.on { background: #2e7d32; }
+  .r2 .rel-dot.on { background: #e65100; }
+  .r3 .rel-dot.on { background: #c62828; }
+
+  .concept-list { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+  .concept-chip {
+    font-size: 0.7rem; padding: 2px 7px; border-radius: 10px;
+    background: var(--primary-pale); color: var(--primary); font-weight: 600;
+  }
+
+  .expand-section { border-top: 1px solid var(--border); }
+  .expand-trigger {
+    width: 100%; padding: 7px 13px;
+    background: none; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.76rem; font-weight: 700; color: var(--text-muted);
+    text-align: left; transition: var(--transition);
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .expand-trigger:hover { background: var(--bg); color: var(--text); }
+  .expand-arrow { transition: transform 0.2s; font-size: 0.65rem; }
+  .expand-trigger.open .expand-arrow { transform: rotate(180deg); }
+  .expand-content { padding: 0 13px 11px; display: none; }
+  .expand-content.open { display: block; }
+  .expand-content p { font-size: 0.82rem; line-height: 1.6; color: #37474f; }
+
+  .didaktik-block { margin-bottom: 9px; }
+  .didaktik-block strong { font-size: 0.73rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 3px; }
+  .didaktik-block p { font-size: 0.82rem; line-height: 1.5; color: #37474f; }
+  .methoden-list { list-style: none; padding: 0; margin: 0; }
+  .methoden-list li { font-size: 0.81rem; line-height: 1.5; color: #37474f; padding: 2px 0 2px 14px; position: relative; }
+  .methoden-list li::before { content: '→'; position: absolute; left: 0; color: var(--primary-light); }
+
+  .card-tags {
+    padding: 7px 13px; border-top: 1px solid var(--border);
+    display: flex; gap: 5px; flex-wrap: wrap; align-items: center;
+  }
+  .tag-badge { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; font-weight: 700; }
+  .tag-badge.fav { background: #fce4ec; color: #c2185b; }
+  .tag-badge.inc { background: var(--danger-pale); color: var(--danger); }
+  .tag-badge.edited { background: var(--secondary-pale); color: var(--secondary); }
+  .tag-annot { font-size: 0.7rem; color: var(--text-muted); font-style: italic; }
+  .annot-bubble {
+    background: var(--neutral-pale); border-left: 3px solid var(--neutral);
+    padding: 5px 9px; border-radius: 0 5px 5px 0;
+    font-size: 0.79rem; color: var(--text-muted); font-style: italic; margin-top: 4px;
+  }
+
+  mark { background: #fff59d; color: inherit; border-radius: 2px; padding: 0 1px; }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.48);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 500; padding: 20px; backdrop-filter: blur(2px);
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: var(--surface); border-radius: var(--radius);
+    box-shadow: var(--shadow-lg); width: 100%; max-width: 680px;
+    max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column;
+  }
+  .modal-sm { max-width: 460px; }
+  .modal-header {
+    padding: 15px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; background: var(--surface); z-index: 1;
+  }
+  .modal-header h2 { font-size: 0.95rem; font-weight: 700; }
+  .modal-body { padding: 18px 20px; flex: 1; }
+  .modal-footer {
+    padding: 13px 20px; border-top: 1px solid var(--border);
+    display: flex; gap: 9px; justify-content: flex-end;
+    position: sticky; bottom: 0; background: var(--surface);
+  }
+  .form-group { margin-bottom: 13px; }
+  .form-group label { display: block; font-size: 0.77rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-group textarea, .form-group input[type="text"], .form-group select {
+    width: 100%; padding: 8px 11px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); font-size: 0.86rem;
+    font-family: var(--font); color: var(--text); background: var(--bg);
+    transition: var(--transition); resize: vertical;
+  }
+  .form-group textarea:focus, .form-group input[type="text"]:focus, .form-group select:focus {
+    outline: none; border-color: var(--primary-light); background: white;
+  }
+  .form-group input[type="file"] { font-size: 0.85rem; color: var(--text-muted); }
+  .btn {
+    padding: 7px 16px; border-radius: var(--radius-sm); border: none;
+    cursor: pointer; font-size: 0.86rem; font-weight: 700; transition: var(--transition);
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: #1b4332; }
+  .btn-secondary { background: var(--neutral-pale); color: var(--text); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-danger { background: var(--danger-pale); color: var(--danger); border: 1px solid #ffcdd2; }
+  .btn-danger:hover { background: #ffcdd2; }
+
+  .export-opt {
+    padding: 13px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    cursor: pointer; transition: var(--transition); margin-bottom: 9px;
+    display: flex; align-items: center; gap: 11px;
+  }
+  .export-opt:hover { border-color: var(--primary-light); background: var(--primary-pale); }
+  .export-icon { font-size: 1.7rem; flex-shrink: 0; }
+  .export-title { font-weight: 700; font-size: 0.88rem; }
+  .export-desc { font-size: 0.77rem; color: var(--text-muted); margin-top: 2px; }
+
+  #empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); display: none; }
+  #empty-state .ei { font-size: 3rem; margin-bottom: 12px; }
+  #empty-state h3 { font-size: 1.05rem; margin-bottom: 5px; color: var(--text); }
+
+  #toast-container { position: fixed; bottom: 22px; right: 22px; z-index: 9999; display: flex; flex-direction: column; gap: 7px; }
+  .toast {
+    background: #1a2327; color: white; padding: 9px 15px;
+    border-radius: var(--radius-sm); font-size: 0.83rem;
+    box-shadow: var(--shadow-md); max-width: 300px;
+    animation: toastIn 0.3s ease;
+  }
+  .toast.success { border-left: 4px solid #4caf50; }
+  .toast.error { border-left: 4px solid var(--danger); }
+  .toast.info { border-left: 4px solid var(--secondary); }
+  @keyframes toastIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  .reset-btn { background: none; border: 1px dashed var(--border); color: var(--text-muted); padding: 6px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8rem; width: 100%; margin-top: 6px; }
+  .reset-btn:hover { background: var(--neutral-pale); color: var(--text); }
+
+  @media (max-width: 760px) {
+    #sidebar { width: 100%; position: fixed; top: 60px; left: 0; bottom: 0; z-index: 50; transform: translateX(-100%); transition: transform 0.3s; }
+    #sidebar.mobile-open { transform: translateX(0); }
+    #card-grid { grid-template-columns: 1fr; }
+    #topbar h1 span { display: none; }
+  }
+  @media print {
+    #topbar, #sidebar, #toolbar, .card-actions, .expand-trigger { display: none !important; }
+    #app { display: block; height: auto; }
+    #content-area { overflow: visible; padding: 0; }
+    .card { break-inside: avoid; margin-bottom: 14px; box-shadow: none; border: 1px solid #ccc; }
+    .expand-content { display: block !important; }
+  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--neutral); }
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Lernziele werden geladen…</div>
+</div>
+
+<div id="topbar">
+  <button class="topbar-btn" id="sidebar-toggle-btn" title="Seitenleiste">☰</button>
+  <h1>Evolutionsbezug Biologie
+    <span>Thüringen · Gymnasium · Klassen 7–8</span>
+  </h1>
+  <button class="topbar-btn" id="export-open-btn">⬇ Export</button>
+  <button class="topbar-btn" id="import-open-btn">⬆ Import</button>
+  <button class="topbar-btn accent" id="reset-all-btn">↺ Reset</button>
+</div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-header" data-target="sec-search">🔍 Suche <span>▾</span></div>
+      <div class="sidebar-body" id="sec-search">
+        <div id="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="ID, Thema, Lernziel…">
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-header" data-target="sec-filter">🎛 Filter <span>▾</span></div>
+      <div class="sidebar-body" id="sec-filter">
+        <span class="filter-label">Thema</span>
+        <div class="filter-chips" id="thema-chips"></div>
+        <span class="filter-label">Unterthema</span>
+        <select id="unterthema-select" class="filter-select"><option value="">Alle Unterthemen</option></select>
+        <span class="filter-label">Evolutionsrelevanz</span>
+        <div class="filter-chips" id="rel-chips">
+          <span class="chip r1" data-rel="1">● Gering</span>
+          <span class="chip r2" data-rel="2">●● Mittel</span>
+          <span class="chip r3" data-rel="3">●●● Hoch</span>
+        </div>
+        <span class="filter-label">Markierungen</span>
+        <div class="filter-chips" id="tag-chips">
+          <span class="chip fav" data-tag="fav">❤ Favoriten</span>
+          <span class="chip inc" data-tag="inc">⚠ Fehlerhaft</span>
+          <span class="chip edited" data-tag="edited">✏ Bearbeitet</span>
+        </div>
+        <span class="filter-label">Lernziel-Typ</span>
+        <div class="filter-chips" id="type-chips"></div>
+        <button class="reset-btn" id="clear-filters-btn">✕ Alle Filter zurücksetzen</button>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-header" data-target="sec-stats">📊 Statistik <span>▾</span></div>
+      <div class="sidebar-body" id="sec-stats">
+        <canvas id="chart-canvas"></canvas>
+        <div id="stats-detail"></div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-header" data-target="sec-planner">📅 Unterrichtsplaner <span>▾</span></div>
+      <div class="sidebar-body hidden" id="sec-planner">
+        <div id="planner-info" style="font-size:0.81rem;color:var(--text-muted)">Noch keine Favoriten markiert.</div>
+        <button class="reset-btn" id="export-plan-btn">📋 Stundenplan als Markdown</button>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-header" data-target="sec-info">ℹ Info <span>▾</span></div>
+      <div class="sidebar-body hidden" id="sec-info">
+        <p style="font-size:0.78rem;line-height:1.6;color:var(--text-muted)">
+          Dieses Tool visualisiert den Evolutionsbezug aller Lernziele des Thüringer Lehrplans Biologie Gymnasium Klassen 7–8.<br><br>
+          <strong>Relevanz:</strong> 🟢 1 Gering · 🟡 2 Mittel · 🔴 3 Hoch<br><br>
+          Annotationen werden lokal im Browser (localStorage) gespeichert.<br><br>
+          <strong>Tastenkürzel:</strong><br>
+          Strg+F → Suche · Esc → Modal schließen
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="main">
+    <div id="toolbar">
+      <span class="tb-label">Sortieren:</span>
+      <select id="sort-select">
+        <option value="id">ID</option>
+        <option value="thema">Thema</option>
+        <option value="rel-asc">Relevanz ↑</option>
+        <option value="rel-desc">Relevanz ↓</option>
+        <option value="fav-first">Favoriten zuerst</option>
+      </select>
+      <button class="tb-btn" id="expand-all-btn">⊕ Alle aufklappen</button>
+      <button class="tb-btn" id="collapse-all-btn">⊖ Alle zuklappen</button>
+      <button class="tb-btn" id="print-btn">🖨 Drucken</button>
+      <div id="view-toggle">
+        <button id="btn-grid" class="active" title="Kacheln">⊞</button>
+        <button id="btn-list" title="Liste">☰</button>
+      </div>
+      <span id="result-count"></span>
+    </div>
+    <div id="content-area">
+      <div id="card-grid"></div>
+      <div id="empty-state">
+        <div class="ei">🔍</div>
+        <h3>Keine Einträge gefunden</h3>
+        <p>Filter oder Suchbegriff anpassen.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay hidden" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>✏ Bearbeiten – <span id="edit-modal-id"></span></h2>
+      <button class="icon-btn" id="edit-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Wissenschaftliche Begründung</label><textarea id="edit-wiss" rows="5"></textarea></div>
+      <div class="form-group"><label>Evolutionskonzepte (kommagetrennt)</label><input type="text" id="edit-konzepte"></div>
+      <div class="form-group"><label>Evolutionsrelevanz</label>
+        <select id="edit-relevanz"><option value="1">1 – Gering</option><option value="2">2 – Mittel</option><option value="3">3 – Hoch</option></select>
+      </div>
+      <div class="form-group"><label>Didaktischer Impuls</label><textarea id="edit-impuls" rows="3"></textarea></div>
+      <div class="form-group"><label>Methoden (eine pro Zeile)</label><textarea id="edit-methoden" rows="4"></textarea></div>
+      <div class="form-group"><label>Mögliche Fehlvorstellungen</label><textarea id="edit-fehler" rows="3"></textarea></div>
+      <div class="form-group"><label>Persönliche Notizen</label><textarea id="edit-notes" rows="2" placeholder="Interne Anmerkungen…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="edit-cancel-btn">Abbrechen</button>
+      <button class="btn btn-primary" id="edit-save-btn">💾 Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANNOTATION MODAL -->
+<div class="modal-overlay hidden" id="annot-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2 id="annot-modal-title">Markierung</h2>
+      <button class="icon-btn" id="annot-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Anmerkung (optional)</label><textarea id="annot-text" rows="4" placeholder="Kommentar, Begründung…"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="annot-cancel-btn">Abbrechen</button>
+      <button class="btn btn-danger" id="annot-remove-btn">Markierung entfernen</button>
+      <button class="btn btn-primary" id="annot-save-btn">✓ Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay hidden" id="export-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>⬇ Exportieren</h2>
+      <button class="icon-btn" id="export-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="export-opt" data-export="all"><span class="export-icon">📦</span><div><div class="export-title">Vollständiger Datensatz (JSON)</div><div class="export-desc">Alle Einträge mit Bearbeitungen und Markierungen</div></div></div>
+      <div class="export-opt" data-export="favorites"><span class="export-icon">❤</span><div><div class="export-title">Nur Favoriten (JSON)</div><div class="export-desc">Als Favorit markierte Einträge</div></div></div>
+      <div class="export-opt" data-export="incorrect"><span class="export-icon">⚠</span><div><div class="export-title">Nur Fehlerhafte (JSON)</div><div class="export-desc">Als fehlerhaft markierte Einträge</div></div></div>
+      <div class="export-opt" data-export="filtered"><span class="export-icon">🎛</span><div><div class="export-title">Gefilterte Einträge (JSON)</div><div class="export-desc">Aktuell angezeigte Einträge (<span id="export-count">0</span>)</div></div></div>
+      <div class="export-opt" data-export="csv"><span class="export-icon">📊</span><div><div class="export-title">Gesamtübersicht (CSV)</div><div class="export-desc">Für Excel/LibreOffice Calc</div></div></div>
+      <div class="export-opt" data-export="markdown"><span class="export-icon">📋</span><div><div class="export-title">Unterrichtsplan (Markdown)</div><div class="export-desc">Favoriten als strukturierter Plan</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay hidden" id="import-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>⬆ Annotationen importieren</h2>
+      <button class="icon-btn" id="import-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.83rem;color:var(--text-muted);margin-bottom:12px">Importiere eine zuvor exportierte JSON-Datei. Nur Annotationen werden überschrieben.</p>
+      <div class="form-group"><label>JSON-Datei</label><input type="file" id="import-file" accept=".json"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="import-cancel-btn">Abbrechen</button>
+      <button class="btn btn-primary" id="import-save-btn">📥 Importieren</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Constants ──────────────────────────────────────────────────────────────
+  var DATA_URL = 'https://raw.githubusercontent.com/dustineirdosh/thuringia_lp/main/lernziele_gy78_evolution.json';
+  var LS_ANN = 'bio_annotations_v2';
+  var LS_EDIT = 'bio_edits_v2';
+  var TYPE_LABELS = {
+    inhaltliches_lernziel: 'Inhaltlich',
+    integrationslernziel: 'Integration',
+    praktisches_lernziel: 'Praktisch'
+  };
+  var REL_LABELS = { 1: '● Gering', 2: '●● Mittel', 3: '●●● Hoch' };
+
+  // ── State ─────────────────────────────────────────────────────────────────
+  var rawData = [];
+  var filteredData = [];
+  var annotations = {};
+  var edits = {};
+  var currentView = 'grid';
+  var activeRelFilters = {};
+  var activeTagFilters = {};
+  var activeThemaFilters = {};
+  var activeTypeFilters = {};
+  var editingId = null;
+  var annotatingId = null;
+  var annotatingType = null;
+
+  // ── DOM refs ──────────────────────────────────────────────────────────────
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ── Init ──────────────────────────────────────────────────────────────────
+  function init() {
+    loadLS();
+    bindStaticEvents();
+    fetchData();
+  }
+
+  function loadLS() {
+    try { annotations = JSON.parse(localStorage.getItem(LS_ANN) || '{}'); } catch (e) { annotations = {}; }
+    try { edits = JSON.parse(localStorage.getItem(LS_EDIT) || '{}'); } catch (e) { edits = {}; }
+  }
+
+  function saveLS() {
+    try { localStorage.setItem(LS_ANN, JSON.stringify(annotations)); } catch (e) {}
+    try { localStorage.setItem(LS_EDIT, JSON.stringify(edits)); } catch (e) {}
+  }
+
+  function fetchData() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', DATA_URL, true);
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          var json = JSON.parse(xhr.responseText);
+          rawData = json.evolutionsbezug_und_didaktik || [];
+          $('loading-overlay').classList.add('hidden');
+          buildSidebar();
+          applyFilters();
+          drawChart();
+          showToast('✓ ' + rawData.length + ' Lernziele geladen', 'success');
+        } catch (e) {
+          onFetchError('JSON-Fehler: ' + e.message);
+        }
+      } else {
+        onFetchError('HTTP ' + xhr.status);
+      }
+    };
+    xhr.onerror = function () { onFetchError('Netzwerkfehler – CORS oder keine Verbindung'); };
+    xhr.send();
+  }
+
+  function onFetchError(msg) {
+    $('loading-overlay').classList.add('hidden');
+    $('empty-state').style.display = 'block';
+    $('empty-state').querySelector('h3').textContent = 'Ladefehler';
+    $('empty-state').querySelector('p').textContent = msg + ' — Bitte Datei lokal über einen Webserver öffnen (z.B. Live Server in VS Code).';
+    showToast('⚠ ' + msg, 'error');
+  }
+
+  // ── Sidebar build ─────────────────────────────────────────────────────────
+  function buildSidebar() {
+    var themas = unique(rawData.map(function (d) { return d.thema; }));
+    var tc = $('thema-chips');
+    tc.innerHTML = '';
+    themas.forEach(function (t) {
+      var chip = mkChip(t.split(' ')[0], t, 'thema');
+      tc.appendChild(chip);
+    });
+
+    var uts = unique(rawData.map(function (d) { return d.unterthema; })).sort();
+    var us = $('unterthema-select');
+    uts.forEach(function (u) {
+      var o = document.createElement('option');
+      o.value = u; o.textContent = u;
+      us.appendChild(o);
+    });
+
+    var types = unique(rawData.map(function (d) { return d.lernziel_typ || ''; })).filter(Boolean);
+    var tyc = $('type-chips');
+    tyc.innerHTML = '';
+    types.forEach(function (t) {
+      var chip = mkChip(TYPE_LABELS[t] || t, t, 'type');
+      tyc.appendChild(chip);
+    });
+  }
+
+  function mkChip(label, value, group) {
+    var chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = label;
+    chip.title = value;
+    chip.addEventListener('click', function () {
+      chip.classList.toggle('active');
+      var map = group === 'thema' ? activeThemaFilters : activeTypeFilters;
+      if (map[value]) { delete map[value]; } else { map[value] = true; }
+      applyFilters();
+    });
+    return chip;
+  }
+
+  // ── Filters ───────────────────────────────────────────────────────────────
+  function applyFilters() {
+    var q = ($('search-input').value || '').toLowerCase().trim();
+    var ut = $('unterthema-select').value;
+    var sort = $('sort-select').value;
+
+    var relKeys = Object.keys(activeRelFilters);
+    var tagKeys = Object.keys(activeTagFilters);
+    var themaKeys = Object.keys(activeThemaFilters);
+    var typeKeys = Object.keys(activeTypeFilters);
+
+    filteredData = rawData.filter(function (d) {
+      if (themaKeys.length && !activeThemaFilters[d.thema]) return false;
+      if (ut && d.unterthema !== ut) return false;
+      if (typeKeys.length && !activeTypeFilters[d.lernziel_typ]) return false;
+      var rel = getRelevanz(d);
+      if (relKeys.length && !activeRelFilters[String(rel)]) return false;
+      var a = annotations[d.id] || {};
+      if (tagKeys.length) {
+        if (activeTagFilters['fav'] && !a.fav) return false;
+        if (activeTagFilters['inc'] && !a.inc) return false;
+        if (activeTagFilters['edited'] && !edits[d.id]) return false;
+      }
+      if (q) {
+        var e = edits[d.id] || {};
+        var haystack = [
+          d.id, d.thema, d.unterthema, d.originaltext,
+          (d.evolutionsbezug || {}).wissenschaftliche_begruendung,
+          ((d.evolutionsbezug || {}).relevante_evolutionskonzepte || []).join(' '),
+          ((d.didaktische_strategien || {}).evolutionsdidaktischer_impuls),
+          e.wiss, e.impuls, a.favNote, a.incNote, a.notes
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (haystack.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    filteredData.sort(function (a, b) {
+      var aa = annotations[a.id] || {}, ba = annotations[b.id] || {};
+      if (sort === 'thema') {
+        var tc = a.thema.localeCompare(b.thema);
+        return tc !== 0 ? tc : a.unterthema.localeCompare(b.unterthema);
+      }
+      if (sort === 'rel-asc') return getRelevanz(a) - getRelevanz(b);
+      if (sort === 'rel-desc') return getRelevanz(b) - getRelevanz(a);
+      if (sort === 'fav-first') return (ba.fav ? 1 : 0) - (aa.fav ? 1 : 0);
+      return a.id.localeCompare(b.id);
+    });
+
+    $('result-count').textContent = filteredData.length + ' von ' + rawData.length + ' Einträgen';
+    var ec = $('export-count');
+    if (ec) ec.textContent = filteredData.length;
+    renderCards(q);
+    updateStats();
+  }
+
+  function getRelevanz(d) {
+    var e = edits[d.id];
+    if (e && e.relevanz) return parseInt(e.relevanz, 10);
+    return ((d.evolutionsbezug || {}).evolutionsrelevanz_beurteilung) || 1;
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  function renderCards(query) {
+    var grid = $('card-grid');
+    var empty = $('empty-state');
+    grid.innerHTML = '';
+    if (!filteredData.length) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    var frag = document.createDocumentFragment();
+    filteredData.forEach(function (d) { frag.appendChild(buildCard(d, query || '')); });
+    grid.appendChild(frag);
+  }
+
+  function hl(text, query) {
+    if (!text) return '';
+    var safe = escHtml(String(text));
+    if (!query) return safe;
+    var parts = safe.split(new RegExp('(' + escRe(escHtml(query)) + ')', 'gi'));
+    return parts.map(function (p, i) { return i % 2 === 1 ? '<mark>' + p + '</mark>' : p; }).join('');
+  }
+
+  function buildCard(d, query) {
+    var id = d.id;
+    var a = annotations[id] || {};
+    var e = edits[id] || {};
+    var rel = getRelevanz(d);
+    var ev = d.evolutionsbezug || {};
+    var ds = d.didaktische_strategien || {};
+
+    var wiss = e.wiss || ev.wissenschaftliche_begruendung || '';
+    var konzepte = e.konzepte
+      ? e.konzepte.split(',').map(function (s) { return s.trim(); })
+      : (ev.relevante_evolutionskonzepte || []);
+    var impuls = e.impuls || ds.evolutionsdidaktischer_impuls || '';
+    var methoden = e.methoden
+      ? e.methoden.split('\n').filter(Boolean)
+      : (ds.empfohlene_methoden || []);
+    var fehler = e.fehler || ds.moegliche_fehlvorstellungen || '';
+    var lehrplan = ds.bezug_zum_lehrplan_kontext || '';
+    var notes = a.notes || '';
+    var isEdited = !!edits[id];
+
+    var card = document.createElement('div');
+    var cls = 'card';
+    if (a.fav) cls += ' is-favorite';
+    if (a.inc) cls += ' is-incorrect';
+    if (isEdited) cls += ' is-edited';
+    card.className = cls;
+    card.id = 'card-' + id;
+
+    var dots = [1,2,3].map(function (i) {
+      return '<div class="rel-dot' + (i <= rel ? ' on' : '') + '"></div>';
+    }).join('');
+
+    var konzHtml = konzepte.map(function (k) {
+      return '<span class="concept-chip">' + hl(k, query) + '</span>';
+    }).join('');
+
+    var methHtml = methoden.map(function (m) {
+      return '<li>' + hl(m, query) + '</li>';
+    }).join('');
+
+    var tagHtml = '';
+    if (a.fav || a.inc || isEdited || notes) {
+      var tags = '';
+      if (a.fav) tags += '<span class="tag-badge fav">❤ Favorit</span>' + (a.favNote ? '<span class="tag-annot">' + escHtml(a.favNote) + '</span>' : '');
+      if (a.inc) tags += '<span class="tag-badge inc">⚠ Fehlerhaft</span>' + (a.incNote ? '<span class="tag-annot">' + escHtml(a.incNote) + '</span>' : '');
+      if (isEdited) tags += '<span class="tag-badge edited">✏ Bearbeitet</span>';
+      tagHtml = '<div class="card-tags">' + tags + '</div>';
+    }
+
+    var notesSection = notes ? (
+      '<div class="expand-section">' +
+      '<button class="expand-trigger" data-expand="true">📝 Notizen <span class="expand-arrow">▾</span></button>' +
+      '<div class="expand-content"><div class="annot-bubble">' + hl(notes, query) + '</div></div>' +
+      '</div>'
+    ) : '';
+
+    card.innerHTML =
+      '<div class="card-header">' +
+        '<span class="card-id">' + hl(id, query) + '</span>' +
+        '<div class="card-titles">' +
+          '<div class="card-thema">' + hl(d.thema, query) + '</div>' +
+          '<div class="card-unterthema">' + hl(d.unterthema, query) + '</div>' +
+        '</div>' +
+        '<div class="card-actions">' +
+          '<button class="icon-btn fav-btn' + (a.fav ? ' active' : '') + '" data-action="fav" data-id="' + id + '" title="Favorit">❤</button>' +
+          '<button class="icon-btn inc-btn' + (a.inc ? ' active' : '') + '" data-action="inc" data-id="' + id + '" title="Fehlerhaft">⚠</button>' +
+          '<button class="icon-btn edit-btn" data-action="edit" data-id="' + id + '" title="Bearbeiten">✏</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="card-body">' +
+        '<div class="lernziel-text">' + hl(d.originaltext, query) + '</div>' +
+        '<span class="relevance-badge r' + rel + '">' +
+          '<div class="rel-dots">' + dots + '</div>' +
+          'Relevanz: ' + REL_LABELS[rel] +
+          (isEdited && e.relevanz ? ' <em style="font-size:0.68rem;opacity:0.7">(bearbeitet)</em>' : '') +
+        '</span>' +
+        (konzHtml ? '<div class="concept-list">' + konzHtml + '</div>' : '') +
+      '</div>' +
+      '<div class="expand-section">' +
+        '<button class="expand-trigger" data-expand="true">🔬 Wissenschaftlicher Evolutionsbezug <span class="expand-arrow">▾</span></button>' +
+        '<div class="expand-content"><p>' + hl(wiss, query) + '</p></div>' +
+      '</div>' +
+      '<div class="expand-section">' +
+        '<button class="expand-trigger" data-expand="true">🎓 Didaktische Strategien <span class="expand-arrow">▾</span></button>' +
+        '<div class="expand-content">' +
+          (impuls ? '<div class="didaktik-block"><strong>Evolutionsdidaktischer Impuls</strong><p>' + hl(impuls, query) + '</p></div>' : '') +
+          (methoden.length ? '<div class="didaktik-block"><strong>Empfohlene Methoden</strong><ul class="methoden-list">' + methHtml + '</ul></div>' : '') +
+          (fehler ? '<div class="didaktik-block"><strong>Mögliche Fehlvorstellungen</strong><p>' + hl(fehler, query) + '</p></div>' : '') +
+          (lehrplan ? '<div class="didaktik-block"><strong>Bezug zum Lehrplan</strong><p>' + hl(lehrplan, query) + '</p></div>' : '') +
+        '</div>' +
+      '</div>' +
+      notesSection +
+      tagHtml;
+
+    return card;
+  }
+
+  // ── Card click delegation ─────────────────────────────────────────────────
+  document.addEventListener('click', function (evt) {
+    var t = evt.target;
+    // expand
+    var trigger = t.closest ? t.closest('.expand-trigger') : null;
+    if (trigger) {
+      trigger.classList.toggle('open');
+      var content = trigger.nextElementSibling;
+      if (content) content.classList.toggle('open');
+      return;
+    }
+    // action buttons
+    var btn = t.closest ? t.closest('[data-action]') : null;
+    if (btn) {
+      var action = btn.getAttribute('data-action');
+      var id = btn.getAttribute('data-id');
+      if (action === 'fav') { openAnnotModal(id, 'fav'); }
+      else if (action === 'inc') { openAnnotModal(id, 'inc'); }
+      else if (action === 'edit') { openEditModal(id); }
+      return;
+    }
+    // export options
+    var eo = t.closest ? t.closest('.export-opt') : null;
+    if (eo) { doExport(eo.getAttribute('data-export')); return; }
+    // modal overlay close
+    if (t.classList && t.classList.contains('modal-overlay')) {
+      t.classList.add('hidden');
+    }
+  });
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
+  function updateStats() {
+    var counts = { 1: 0, 2: 0, 3: 0 };
+    rawData.forEach(function (d) { var r = getRelevanz(d); if (counts[r] !== undefined) counts[r]++; });
+    var total = rawData.length;
+    var favN = Object.keys(annotations).filter(function (k) { return annotations[k].fav; }).length;
+    var incN = Object.keys(annotations).filter(function (k) { return annotations[k].inc; }).length;
+    var editN = Object.keys(edits).length;
+
+    var colors = { 1: '#388e3c', 2: '#e65100', 3: '#c62828' };
+    var rows = [1, 2, 3].map(function (r) {
+      var pct = total ? Math.round(counts[r] / total * 100) : 0;
+      return '<div class="stat-row"><span>' + REL_LABELS[r] + '</span><span class="stat-num">' + counts[r] + '</span></div>' +
+        '<div class="stat-bar-wrap"><div class="stat-bar-inner" style="width:' + pct + '%;background:' + colors[r] + '"></div></div>';
+    }).join('');
+
+    $('stats-detail').innerHTML =
+      '<div class="stat-row"><span>🔢 Gesamt</span><span class="stat-num">' + total + '</span></div>' +
+      rows +
+      '<div class="stat-row" style="margin-top:8px"><span>❤ Favoriten</span><span class="stat-num">' + favN + '</span></div>' +
+      '<div class="stat-row"><span>⚠ Fehlerhaft</span><span class="stat-num">' + incN + '</span></div>' +
+      '<div class="stat-row"><span>✏ Bearbeitet</span><span class="stat-num">' + editN + '</span></div>' +
+      '<div class="stat-row"><span>📋 Gefiltert</span><span class="stat-num">' + filteredData.length + '</span></div>';
+
+    updatePlannerInfo();
+  }
+
+  function updatePlannerInfo() {
+    var favIds = Object.keys(annotations).filter(function (k) { return annotations[k].fav; });
+    var favItems = rawData.filter(function (d) { return favIds.indexOf(d.id) !== -1; });
+    var hours = favItems.reduce(function (s, d) { return s + (d.geschaetzte_unterrichtsstunden || 1); }, 0);
+    $('planner-info').innerHTML = favItems.length
+      ? '<strong>' + favItems.length + ' Favoriten</strong> ≈ <strong>' + hours + ' Unterrichtsstunden</strong>'
+      : 'Noch keine Favoriten markiert.';
+  }
+
+  // ── Chart ─────────────────────────────────────────────────────────────────
+  function drawChart() {
+    var canvas = $('chart-canvas');
+    if (!canvas || !canvas.getContext) return;
+    var dpr = window.devicePixelRatio || 1;
+    var cw = canvas.offsetWidth;
+    var ch = 150;
+    canvas.width = cw * dpr;
+    canvas.height = ch * dpr;
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    var themas = unique(rawData.map(function (d) { return d.thema; }));
+    var colors = ['#388e3c', '#e65100', '#c62828'];
+    var pad = 30;
+    var bw = themas.length ? (cw - pad * 2) / themas.length : 1;
+    ctx.clearRect(0, 0, cw, ch);
+
+    themas.forEach(function (thema, i) {
+      var items = rawData.filter(function (d) { return d.thema === thema; });
+      var relCounts = [1, 2, 3].map(function (r) {
+        return items.filter(function (d) { return getRelevanz(d) === r; }).length;
+      });
+      var totalItems = items.length;
+      var availH = ch - 28;
+      var y = ch - 18;
+      relCounts.forEach(function (c, ri) {
+        var barH = totalItems ? (c / Math.max(rawData.length, 1)) * availH * 3 : 0;
+        barH = Math.min(barH, availH);
+        ctx.fillStyle = colors[ri];
+        ctx.fillRect(pad + i * bw + 3, y - barH, bw - 6, barH);
+        y -= barH;
+      });
+      ctx.fillStyle = '#607d8b';
+      ctx.font = '9px sans-serif';
+      ctx.textAlign = 'center';
+      var label = thema.split(' ')[0];
+      if (label.length > 7) label = label.substring(0, 6) + '…';
+      ctx.fillText(label, pad + i * bw + bw / 2, ch - 4);
+    });
+
+    ['Gering', 'Mittel', 'Hoch'].forEach(function (l, i) {
+      ctx.fillStyle = colors[i];
+      ctx.fillRect(cw - 68, 6 + i * 14, 9, 9);
+      ctx.fillStyle = '#607d8b';
+      ctx.font = '9px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(l, cw - 56, 15 + i * 14);
+    });
+  }
+
+  // ── Edit modal ────────────────────────────────────────────────────────────
+  function openEditModal(id) {
+    editingId = id;
+    var d = rawData.find(function (x) { return x.id === id; }) || {};
+    var e = edits[id] || {};
+    var a = annotations[id] || {};
+    var ev = d.evolutionsbezug || {};
+    var ds = d.didaktische_strategien || {};
+    $('edit-modal-id').textContent = id;
+    $('edit-wiss').value = e.wiss !== undefined ? e.wiss : (ev.wissenschaftliche_begruendung || '');
+    $('edit-konzepte').value = e.konzepte !== undefined ? e.konzepte : (ev.relevante_evolutionskonzepte || []).join(', ');
+    $('edit-relevanz').value = e.relevanz !== undefined ? e.relevanz : (ev.evolutionsrelevanz_beurteilung || 1);
+    $('edit-impuls').value = e.impuls !== undefined ? e.impuls : (ds.evolutionsdidaktischer_impuls || '');
+    $('edit-methoden').value = e.methoden !== undefined ? e.methoden : (ds.empfohlene_methoden || []).join('\n');
+    $('edit-fehler').value = e.fehler !== undefined ? e.fehler : (ds.moegliche_fehlvorstellungen || '');
+    $('edit-notes').value = a.notes || '';
+    openModal('edit-modal');
+  }
+
+  function saveEdit() {
+    var id = editingId;
+    if (!id) return;
+    var d = rawData.find(function (x) { return x.id === id; }) || {};
+    var ev = d.evolutionsbezug || {};
+    var ds = d.didaktische_strategien || {};
+    var newData = {
+      wiss: $('edit-wiss').value,
+      konzepte: $('edit-konzepte').value,
+      relevanz: $('edit-relevanz').value,
+      impuls: $('edit-impuls').value,
+      methoden: $('edit-methoden').value,
+      fehler: $('edit-fehler').value
+    };
+    var changed = (
+      newData.wiss !== (ev.wissenschaftliche_begruendung || '') ||
+      newData.konzepte !== (ev.relevante_evolutionskonzepte || []).join(', ') ||
+      parseInt(newData.relevanz, 10) !== (ev.evolutionsrelevanz_beurteilung || 1) ||
+      newData.impuls !== (ds.evolutionsdidaktischer_impuls || '') ||
+      newData.methoden !== (ds.empfohlene_methoden || []).join('\n') ||
+      newData.fehler !== (ds.moegliche_fehlvorstellungen || '')
+    );
+    if (changed) { edits[id] = newData; } else { delete edits[id]; }
+    if (!annotations[id]) annotations[id] = {};
+    annotations[id].notes = $('edit-notes').value;
+    if (!annotations[id].notes && !annotations[id].fav && !annotations[id].inc) delete annotations[id];
+    saveLS();
+    closeModal('edit-modal');
+    applyFilters();
+    drawChart();
+    showToast('✓ Eintrag gespeichert', 'success');
+  }
+
+  // ── Annotation modal ──────────────────────────────────────────────────────
+  function openAnnotModal(id, type) {
+    annotatingId = id;
+    annotatingType = type;
+    var a = annotations[id] || {};
+    $('annot-modal-title').textContent = type === 'fav' ? '❤ Favorit markieren' : '⚠ Als fehlerhaft markieren';
+    $('annot-text').value = type === 'fav' ? (a.favNote || '') : (a.incNote || '');
+    $('annot-remove-btn').style.display = a[type] ? '' : 'none';
+    openModal('annot-modal');
+  }
+
+  function saveAnnotation() {
+    var id = annotatingId;
+    var type = annotatingType;
+    if (!id) return;
+    if (!annotations[id]) annotations[id] = {};
+    annotations[id][type] = true;
+    var note = $('annot-text').value.trim();
+    if (type === 'fav') annotations[id].favNote = note;
+    else annotations[id].incNote = note;
+    saveLS();
+    closeModal('annot-modal');
+    applyFilters();
+    showToast(type === 'fav' ? '❤ Als Favorit markiert' : '⚠ Als fehlerhaft markiert', 'info');
+  }
+
+  function removeAnnotation() {
+    var id = annotatingId;
+    var type = annotatingType;
+    if (id && annotations[id]) {
+      delete annotations[id][type];
+      if (type === 'fav') delete annotations[id].favNote;
+      else delete annotations[id].incNote;
+      if (!annotations[id].fav && !annotations[id].inc && !annotations[id].notes) delete annotations[id];
+    }
+    saveLS();
+    closeModal('annot-modal');
+    applyFilters();
+    showToast('Markierung entfernt', 'info');
+  }
+
+  // ── Export ────────────────────────────────────────────────────────────────
+  function enrichItem(d) {
+    var id = d.id;
+    var e = edits[id] || {};
+    var a = annotations[id] || {};
+    var item = JSON.parse(JSON.stringify(d));
+    var ev = item.evolutionsbezug || {};
+    var ds = item.didaktische_strategien || {};
+    if (e.wiss) ev.wissenschaftliche_begruendung = e.wiss;
+    if (e.konzepte) ev.relevante_evolutionskonzepte = e.konzepte.split(',').map(function (s) { return s.trim(); });
+    if (e.relevanz) ev.evolutionsrelevanz_beurteilung = parseInt(e.relevanz, 10);
+    if (e.impuls) ds.evolutionsdidaktischer_impuls = e.impuls;
+    if (e.methoden) ds.empfohlene_methoden = e.methoden.split('\n').filter(Boolean);
+    if (e.fehler) ds.moegliche_fehlvorstellungen = e.fehler;
+    item._annotation = { favorit: !!a.fav, fehlerhaft: !!a.inc, favNote: a.favNote || '', incNote: a.incNote || '', notizen: a.notes || '', bearbeitet: !!edits[id] };
+    return item;
+  }
+
+  function doExport(type) {
+    closeModal('export-modal');
+    var data, filename, content, mime;
+
+    if (type === 'all') {
+      data = rawData.map(enrichItem);
+      filename = 'bio_lernziele_alle.json';
+      content = JSON.stringify({ metadaten: { titel: 'Evolutionsbezug Biologie Gy 7-8 Thüringen', exportiert: new Date().toISOString() }, eintraege: data }, null, 2);
+      mime = 'application/json';
+    } else if (type === 'favorites') {
+      data = rawData.filter(function (d) { return (annotations[d.id] || {}).fav; }).map(enrichItem);
+      if (!data.length) { showToast('Keine Favoriten vorhanden', 'error'); return; }
+      filename = 'bio_favoriten.json';
+      content = JSON.stringify({ eintraege: data }, null, 2);
+      mime = 'application/json';
+    } else if (type === 'incorrect') {
+      data = rawData.filter(function (d) { return (annotations[d.id] || {}).inc; }).map(enrichItem);
+      if (!data.length) { showToast('Keine fehlerhaften Einträge', 'error'); return; }
+      filename = 'bio_fehlerhaft.json';
+      content = JSON.stringify({ eintraege: data }, null, 2);
+      mime = 'application/json';
+    } else if (type === 'filtered') {
+      data = filteredData.map(enrichItem);
+      filename = 'bio_gefiltert.json';
+      content = JSON.stringify({ eintraege: data }, null, 2);
+      mime = 'application/json';
+    } else if (type === 'csv') {
+      var hdrs = ['ID', 'Thema', 'Unterthema', 'Lernziel', 'Typ', 'Relevanz', 'Konzepte', 'Favorit', 'Fehlerhaft', 'Notizen'];
+      var rows = rawData.map(function (d) {
+        var a = annotations[d.id] || {};
+        var rel = getRelevanz(d);
+        var konz = ((d.evolutionsbezug || {}).relevante_evolutionskonzepte || []).join('; ');
+        return [d.id, d.thema, d.unterthema, d.originaltext, d.lernziel_typ || '', rel, konz, a.fav ? 'Ja' : 'Nein', a.inc ? 'Ja' : 'Nein', (a.notes || a.favNote || a.incNote || '')].map(function (v) {
+          return '"' + String(v).replace(/"/g, '""') + '"';
+        }).join(',');
+      });
+      filename = 'bio_lernziele.csv';
+      content = '\uFEFF' + hdrs.join(',') + '\n' + rows.join('\n');
+      mime = 'text/csv;charset=utf-8;';
+    } else if (type === 'markdown') {
+      var favs = rawData.filter(function (d) { return (annotations[d.id] || {}).fav; });
+      if (!favs.length) { showToast('Keine Favoriten vorhanden', 'error'); return; }
+      var byThema = {};
+      favs.forEach(function (d) { if (!byThema[d.thema]) byThema[d.thema] = []; byThema[d.thema].push(d); });
+      var md = '# Unterrichtsplan – Evolutionsbezug Biologie Gy 7/8\n\n_Erstellt: ' + new Date().toLocaleDateString('de-DE') + '_\n\n';
+      Object.keys(byThema).forEach(function (thema) {
+        var items = byThema[thema];
+        var hours = items.reduce(function (s, d) { return s + (d.geschaetzte_unterrichtsstunden || 1); }, 0);
+        md += '## ' + thema + ' (ca. ' + hours + ' Std.)\n\n';
+        items.forEach(function (d) {
+          var a = annotations[d.id] || {};
+          var rel = getRelevanz(d);
+          var relStr = ['', '🟢 Gering', '🟡 Mittel', '🔴 Hoch'][rel] || '';
+          var impuls = (edits[d.id] || {}).impuls || ((d.didaktische_strategien || {}).evolutionsdidaktischer_impuls) || '';
+          md += '### ' + d.id + ' – ' + d.unterthema + '\n';
+          md += '**Lernziel:** ' + d.originaltext + '\n\n';
+          md += '**Evolutionsrelevanz:** ' + relStr + '\n\n';
+          if (impuls) md += '**Didaktischer Impuls:** ' + impuls + '\n\n';
+          if (a.favNote) md += '**Notiz:** ' + a.favNote + '\n\n';
+          md += '---\n\n';
+        });
+      });
+      filename = 'unterrichtsplan.md';
+      content = md;
+      mime = 'text/markdown;charset=utf-8;';
+    } else { return; }
+
+    downloadFile(content, filename, mime);
+    showToast('✓ ' + filename + ' exportiert', 'success');
+  }
+
+  function downloadFile(content, filename, mime) {
+    var blob = new Blob([content], { type: mime });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+  }
+
+  // ── Import ────────────────────────────────────────────────────────────────
+  function doImport() {
+    var file = $('import-file').files[0];
+    if (!file) { showToast('Keine Datei ausgewählt', 'error'); return; }
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        var json = JSON.parse(e.target.result);
+        var items = json.eintraege || json.evolutionsbezug_und_didaktik || [];
+        var count = 0;
+        items.forEach(function (item) {
+          if (item._annotation && item.id) {
+            var ann = item._annotation;
+            if (!annotations[item.id]) annotations[item.id] = {};
+            if (ann.favorit) annotations[item.id].fav = true;
+            if (ann.fehlerhaft) annotations[item.id].inc = true;
+            if (ann.favNote) annotations[item.id].favNote = ann.favNote;
+            if (ann.incNote) annotations[item.id].incNote = ann.incNote;
+            if (ann.notizen) annotations[item.id].notes = ann.notizen;
+            count++;
+          }
+        });
+        saveLS();
+        closeModal('import-modal');
+        applyFilters();
+        showToast('✓ ' + count + ' Annotationen importiert', 'success');
+      } catch (err) {
+        showToast('⚠ Fehler: ' + err.message, 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ── Modal helpers ─────────────────────────────────────────────────────────
+  function openModal(id) { $(id).classList.remove('hidden'); }
+  function closeModal(id) { $(id).classList.add('hidden'); }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  function showToast(msg, type) {
+    var tc = $('toast-container');
+    var t = document.createElement('div');
+    t.className = 'toast ' + (type || 'info');
+    t.textContent = msg;
+    tc.appendChild(t);
+    setTimeout(function () {
+      t.style.transition = 'opacity 0.3s';
+      t.style.opacity = '0';
+      setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 320);
+    }, 3000);
+  }
+
+  // ── Utility ───────────────────────────────────────────────────────────────
+  function unique(arr) {
+    var seen = {};
+    return arr.filter(function (v) { if (seen[v]) return false; seen[v] = true; return true; });
+  }
+
+  function escHtml(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function escRe(s) {
+    return s.replace(/[\-$$\/\{\}$$\*\+\?\.\\\^\$\|]/g, '\\$&');
+  }
+
+  // ── Static event bindings ─────────────────────────────────────────────────
+  function bindStaticEvents() {
+    // Sidebar toggle
+    $('sidebar-toggle-btn').addEventListener('click', function () {
+      var sb = $('sidebar');
+      if (window.innerWidth <= 760) { sb.classList.toggle('mobile-open'); }
+      else { sb.classList.toggle('collapsed'); }
+    });
+
+    // Sidebar section toggles
+    document.querySelectorAll('.sidebar-header').forEach(function (hdr) {
+      hdr.addEventListener('click', function () {
+        var target = hdr.getAttribute('data-target');
+        if (target) {
+          var el = $(target);
+          if (el) el.classList.toggle('hidden');
+        }
+      });
+    });
+
+    // Search
+    $('search-input').addEventListener('input', applyFilters);
+
+    // Unterthema select
+    $('unterthema-select').addEventListener('change', applyFilters);
+
+    // Sort
+    $('sort-select').addEventListener('change', applyFilters);
+
+    // Relevance chips
+    document.querySelectorAll('#rel-chips .chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        chip.classList.toggle('active');
+        var r = chip.getAttribute('data-rel');
+        if (activeRelFilters[r]) { delete activeRelFilters[r]; } else { activeRelFilters[r] = true; }
+        applyFilters();
+      });
+    });
+
+    // Tag chips
+    document.querySelectorAll('#tag-chips .chip').forEach(function (chip) {
+      chip.addEventListener('click', function () {
+        chip.classList.toggle('active');
+        var tag = chip.getAttribute('data-tag');
+        if (activeTagFilters[tag]) { delete activeTagFilters[tag]; } else { activeTagFilters[tag] = true; }
+        applyFilters();
+      });
+    });
+
+    // Clear filters
+    $('clear-filters-btn').addEventListener('click', function () {
+      activeRelFilters = {}; activeTagFilters = {}; activeThemaFilters = {}; activeTypeFilters = {};
+      document.querySelectorAll('.chip.active').forEach(function (c) { c.classList.remove('active'); });
+      $('search-input').value = '';
+      $('unterthema-select').value = '';
+      applyFilters();
+    });
+
+    // Toolbar
+    $('expand-all-btn').addEventListener('click', function () {
+      document.querySelectorAll('.expand-trigger').forEach(function (tr) {
+        tr.classList.add('open');
+        var c = tr.nextElementSibling;
+        if (c) c.classList.add('open');
+      });
+    });
+    $('collapse-all-btn').addEventListener('click', function () {
+      document.querySelectorAll('.expand-trigger').forEach(function (tr) {
+        tr.classList.remove('open');
+        var c = tr.nextElementSibling;
+        if (c) c.classList.remove('open');
+      });
+    });
+    $('print-btn').addEventListener('click', function () { window.print(); });
+
+    // View toggle
+    $('btn-grid').addEventListener('click', function () { setView('grid'); });
+    $('btn-list').addEventListener('click', function () { setView('list'); });
+
+    // Top buttons
+    $('export-open-btn').addEventListener('click', function () {
+      var ec = $('export-count');
+      if (ec) ec.textContent = filteredData.length;
+      openModal('export-modal');
+    });
+    $('import-open-btn').addEventListener('click', function () { openModal('import-modal'); });
+    $('reset-all-btn').addEventListener('click', function () {
+      if (!confirm('Alle Markierungen und Bearbeitungen wirklich zurücksetzen?')) return;
+      annotations = {}; edits = {};
+      saveLS();
+      applyFilters();
+      drawChart();
+      showToast('↺ Alle Annotationen zurückgesetzt', 'info');
+    });
+
+    // Edit modal
+    $('edit-close-btn').addEventListener('click', function () { closeModal('edit-modal'); });
+    $('edit-cancel-btn').addEventListener('click', function () { closeModal('edit-modal'); });
+    $('edit-save-btn').addEventListener('click', saveEdit);
+
+    // Annotation modal
+    $('annot-close-btn').addEventListener('click', function () { closeModal('annot-modal'); });
+    $('annot-cancel-btn').addEventListener('click', function () { closeModal('annot-modal'); });
+    $('annot-save-btn').addEventListener('click', saveAnnotation);
+    $('annot-remove-btn').addEventListener('click', removeAnnotation);
+
+    // Export modal
+    $('export-close-btn').addEventListener('click', function () { closeModal('export-modal'); });
+
+    // Import modal
+    $('import-close-btn').addEventListener('click', function () { closeModal('import-modal'); });
+    $('import-cancel-btn').addEventListener('click', function () { closeModal('import-modal'); });
+    $('import-save-btn').addEventListener('click', doImport);
+
+    // Planner export
+    $('export-plan-btn').addEventListener('click', function () { doExport('markdown'); });
+
+    // Keyboard
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        ['edit-modal','annot-modal','export-modal','import-modal'].forEach(function (id) {
+          if (!$(id).classList.contains('hidden')) closeModal(id);
+        });
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+        e.preventDefault();
+        $('search-input').focus();
+      }
+    });
+
+    // Resize
+    window.addEventListener('resize', function () { if (rawData.length) drawChart(); });
+  }
+
+  function setView(v) {
+    currentView = v;
+    $('card-grid').className = v === 'list' ? 'list-view' : '';
+    $('btn-grid').className = v === 'grid' ? 'active' : '';
+    $('btn-list').className = v === 'list' ? 'active' : '';
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+</body>
+</html>

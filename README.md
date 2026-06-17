@@ -1,2 +1,2 @@
-# EvoMentor_DE
-The German language version of our EvoMentor digital ecosystem
+# thuringia_lp
+am exploratory CCS tool for analyzing and designing scope and sequence plans for the Thuringia biology curriculum
