@@ -1,0 +1,3075 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvoMentor – Deutsche v1.0</title>
+<style>
+  :root {
+    --primary: #2c5f2e;
+    --primary-light: #4a9e4e;
+    --primary-pale: #e8f5e9;
+    --secondary: #1565c0;
+    --secondary-pale: #e3f2fd;
+    --accent: #f57c00;
+    --accent-pale: #fff3e0;
+    --accent2: #6a1b9a;
+    --accent2-pale: #f3e5f5;
+    --danger: #c62828;
+    --danger-pale: #ffebee;
+    --success: #2e7d32;
+    --neutral: #546e7a;
+    --neutral-pale: #eceff1;
+    --bg: #f5f7fa;
+    --surface: #ffffff;
+    --border: #cfd8dc;
+    --text: #1a2327;
+    --text-muted: #607d8b;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.12);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.15);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --transition: 0.2s ease;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  #topbar {
+    background: linear-gradient(135deg, var(--primary) 0%, #1b4332 100%);
+    color: white; padding: 0 16px;
+    display: flex; align-items: center; gap: 8px;
+    height: 60px; position: sticky; top: 0; z-index: 100;
+    box-shadow: var(--shadow-md); flex-wrap: nowrap; overflow-x: auto;
+  }
+  #topbar h1 { font-size: 0.95rem; font-weight: 700; flex: 1; letter-spacing: 0.01em; white-space: nowrap; min-width: 0; }
+  #topbar h1 span { opacity: 0.7; font-weight: 400; font-size: 0.75rem; display: block; }
+  .topbar-btn {
+    background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+    color: white; padding: 6px 11px; border-radius: var(--radius-sm);
+    cursor: pointer; font-size: 0.78rem; font-weight: 600;
+    transition: var(--transition); white-space: nowrap; flex-shrink: 0;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .topbar-btn:hover { background: rgba(255,255,255,0.28); }
+  .topbar-btn.accent { background: var(--accent); border-color: var(--accent); }
+  .topbar-btn.accent:hover { background: #e65100; }
+  .topbar-btn.accent2 { background: var(--accent2); border-color: var(--accent2); }
+  .topbar-btn.accent2:hover { background: #4a148c; }
+  .topbar-btn.active-view { background: rgba(255,255,255,0.35); border-color: rgba(255,255,255,0.7); }
+
+  #loading-overlay {
+    position: fixed; inset: 0; background: rgba(255,255,255,0.92);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; gap: 16px;
+  }
+  #loading-overlay.hidden { display: none; }
+  .spinner { width: 44px; height: 44px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: var(--text-muted); font-size: 0.9rem; }
+
+  #app { display: flex; height: calc(100vh - 60px); overflow: hidden; }
+  #sidebar { width: 300px; min-width: 280px; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; transition: width 0.25s ease, min-width 0.25s ease; }
+  #sidebar.collapsed { width: 0; min-width: 0; overflow: hidden; }
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .view { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+  .view.active { display: flex; }
+  #content-area { flex: 1; overflow-y: auto; padding: 18px; }
+
+  .sidebar-section { border-bottom: 1px solid var(--border); }
+  .sidebar-header { padding: 10px 14px; font-weight: 700; font-size: 0.73rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); background: var(--bg); cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+  .sidebar-header:hover { background: var(--neutral-pale); }
+  .sidebar-header .toggle-icon { transition: transform 0.2s; display: inline-block; }
+  .sidebar-header.collapsed .toggle-icon { transform: rotate(-90deg); }
+  .sidebar-body { padding: 10px 12px; }
+  .sidebar-body.hidden { display: none; }
+
+  #search-wrap { position: relative; }
+  #search-input { width: 100%; padding: 7px 11px 7px 30px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.85rem; background: var(--bg); color: var(--text); transition: var(--transition); }
+  #search-input:focus { outline: none; border-color: var(--primary-light); background: white; }
+  .search-icon { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: var(--text-muted); pointer-events: none; }
+
+  .filter-label { font-size: 0.73rem; font-weight: 700; color: var(--text-muted); margin: 7px 0 4px; display: flex; align-items: center; justify-content: space-between; text-transform: uppercase; letter-spacing: 0.04em; cursor: pointer; user-select: none; }
+  .filter-label .toggle-arrow { font-size: 0.6rem; transition: transform 0.2s; display: inline-block; }
+  .filter-label.collapsed .toggle-arrow { transform: rotate(-90deg); }
+  .filter-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .filter-chips.hidden { display: none; }
+
+  .chip { padding: 3px 8px; border-radius: 20px; font-size: 0.68rem; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted); transition: var(--transition); white-space: normal; word-break: break-word; line-height: 1.3; user-select: none; max-width: 100%; display: inline-block; }
+  .chip:hover { border-color: var(--primary-light); color: var(--primary); }
+  .chip.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .chip.r1.active { background: #388e3c; border-color: #388e3c; }
+  .chip.r2.active { background: #e65100; border-color: #e65100; }
+  .chip.r3.active { background: #c62828; border-color: #c62828; }
+  .chip.fav.active { background: #c2185b; border-color: #c2185b; }
+  .chip.inc.active { background: #c62828; border-color: #c62828; }
+  .chip.edited.active { background: #1565c0; border-color: #1565c0; }
+
+  /* ── EVO CONCEPT TREE ── */
+  .evo-concept-group { margin-bottom: 4px; }
+  .evo-concept-parent-row { display: flex; align-items: flex-start; gap: 3px; margin-bottom: 2px; }
+  .evo-concept-parent-row .chip { flex: 1; }
+  .evo-concept-toggle-btn {
+    background: var(--neutral-pale); border: 1px solid var(--border); border-radius: 4px;
+    cursor: pointer; font-size: 0.65rem; padding: 2px 5px; color: var(--text-muted);
+    flex-shrink: 0; margin-top: 2px; transition: var(--transition); line-height: 1;
+    min-width: 22px; text-align: center;
+  }
+  .evo-concept-toggle-btn:hover { background: var(--border); color: var(--text); }
+  .evo-concept-children { padding-left: 14px; margin-top: 2px; display: none; }
+  .evo-concept-children.open { display: block; }
+  .evo-concept-children .chip { margin: 2px 0; display: block; width: 100%; }
+
+  select.filter-select { width: 100%; padding: 6px 9px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.82rem; background: var(--bg); color: var(--text); cursor: pointer; margin-bottom: 4px; }
+  select.filter-select:focus { outline: none; border-color: var(--primary-light); }
+
+  /* ── STACKED BAR CHART ── */
+  .chart-container { position: relative; width: 100%; }
+  canvas#chart-canvas { width: 100% !important; display: block; }
+
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; font-size: 0.78rem; color: var(--text-muted); }
+  .stat-num { font-weight: 700; color: var(--primary); }
+  .stat-bar-wrap { height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 3px; }
+  .stat-bar-inner { height: 4px; border-radius: 2px; transition: width 0.4s ease; }
+  .reset-btn { background: none; border: 1px dashed var(--border); color: var(--text-muted); padding: 5px 9px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.78rem; width: 100%; margin-top: 5px; }
+  .reset-btn:hover { background: var(--neutral-pale); color: var(--text); }
+
+  .user-tag-input-wrap { display: flex; gap: 5px; margin-top: 6px; }
+  .user-tag-input { flex: 1; padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; background: var(--bg); color: var(--text); }
+  .user-tag-input:focus { outline: none; border-color: var(--accent2); }
+  .user-tag-add-btn { padding: 5px 9px; background: var(--accent2); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.78rem; font-weight: 700; white-space: nowrap; }
+  .user-tag-add-btn:hover { background: #4a148c; }
+  .user-tags-display { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+  .user-tag-filter-chip { padding: 2px 8px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; background: var(--accent2-pale); color: var(--accent2); border: 1.5px solid var(--accent2); cursor: pointer; display: flex; align-items: center; gap: 3px; user-select: none; }
+  .user-tag-filter-chip.active { background: var(--accent2); color: white; }
+  .user-tag-filter-chip .remove-utag { font-size: 0.65rem; opacity: 0.7; margin-left: 2px; cursor: pointer; }
+  .user-tag-filter-chip .remove-utag:hover { opacity: 1; }
+
+  .card-user-tags { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 5px; }
+  .card-user-tag { padding: 2px 7px; border-radius: 10px; font-size: 0.68rem; font-weight: 700; background: var(--accent2-pale); color: var(--accent2); border: 1px solid #ce93d8; display: flex; align-items: center; gap: 3px; }
+  .card-user-tag .rm-tag { cursor: pointer; opacity: 0.6; font-size: 0.6rem; }
+  .card-user-tag .rm-tag:hover { opacity: 1; }
+  .add-tag-btn { padding: 2px 7px; border-radius: 10px; font-size: 0.68rem; font-weight: 700; background: transparent; color: var(--accent2); border: 1px dashed var(--accent2); cursor: pointer; transition: var(--transition); }
+  .add-tag-btn:hover { background: var(--accent2-pale); }
+
+  #toolbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .tb-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+  .tb-btn { padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 0.78rem; font-weight: 600; color: var(--text-muted); transition: var(--transition); display: flex; align-items: center; gap: 4px; }
+  .tb-btn:hover { background: var(--neutral-pale); border-color: var(--neutral); color: var(--text); }
+  #sort-select { padding: 4px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.78rem; background: var(--surface); cursor: pointer; color: var(--text); }
+  #view-toggle { display: flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+  #view-toggle button { padding: 4px 10px; border: none; background: var(--surface); cursor: pointer; font-size: 0.82rem; transition: var(--transition); color: var(--text-muted); }
+  #view-toggle button.active { background: var(--primary); color: white; }
+  #result-count { font-size: 0.78rem; color: var(--text-muted); margin-left: auto; white-space: nowrap; }
+
+  #card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 14px; }
+  #card-grid.list-view { grid-template-columns: 1fr; }
+  .card { background: var(--surface); border-radius: var(--radius); border: 1.5px solid var(--border); box-shadow: var(--shadow-sm); transition: box-shadow var(--transition), border-color var(--transition); display: flex; flex-direction: column; overflow: hidden; }
+  .card:hover { box-shadow: var(--shadow-md); border-color: #b0bec5; }
+  .card.is-favorite { border-color: #e91e63; border-width: 2px; }
+  .card.is-incorrect { border-color: var(--danger); border-width: 2px; }
+  .card.is-edited { box-shadow: 0 0 0 2px rgba(21,101,192,0.25), var(--shadow-sm); }
+
+  .card-header { padding: 10px 12px 8px; background: var(--bg); border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 7px; }
+  .card-id { font-family: 'Courier New', monospace; font-size: 0.67rem; color: var(--text-muted); font-weight: 700; background: var(--neutral-pale); padding: 2px 5px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+  .card-titles { flex: 1; min-width: 0; }
+  .card-thema { font-size: 0.67rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  .card-unterthema { font-size: 0.8rem; color: var(--primary); font-weight: 700; line-height: 1.3; }
+  .card-actions { display: flex; gap: 2px; flex-shrink: 0; }
+  .icon-btn { width: 26px; height: 26px; border-radius: 50%; border: none; background: transparent; cursor: pointer; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; transition: var(--transition); color: var(--text-muted); }
+  .icon-btn:hover { background: var(--neutral-pale); }
+  .icon-btn.fav-btn.active { color: #e91e63; }
+  .icon-btn.inc-btn.active { color: var(--danger); }
+  .icon-btn.edit-btn:hover { color: var(--secondary); background: var(--secondary-pale); }
+  .icon-btn.tag-btn:hover { color: var(--accent2); background: var(--accent2-pale); }
+
+  .card-body { padding: 10px 12px; flex: 1; }
+  .lernziel-text { font-size: 0.86rem; line-height: 1.5; color: var(--text); font-weight: 500; margin-bottom: 8px; }
+  .relevance-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-bottom: 7px; }
+  .relevance-badge.r1 { background: #e8f5e9; color: #2e7d32; }
+  .relevance-badge.r2 { background: #fff3e0; color: #e65100; }
+  .relevance-badge.r3 { background: #ffebee; color: #c62828; }
+  .rel-dots { display: flex; gap: 3px; }
+  .rel-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; }
+  .r1 .rel-dot.on { background: #2e7d32; } .r2 .rel-dot.on { background: #e65100; } .r3 .rel-dot.on { background: #c62828; }
+  .concept-list { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+  .concept-chip { font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; background: var(--primary-pale); color: var(--primary); font-weight: 600; white-space: normal; word-break: break-word; line-height: 1.3; }
+
+  .expand-section { border-top: 1px solid var(--border); }
+  .expand-trigger { width: 100%; padding: 6px 12px; background: none; border: none; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-align: left; transition: var(--transition); text-transform: uppercase; letter-spacing: 0.05em; }
+  .expand-trigger:hover { background: var(--bg); color: var(--text); }
+  .expand-arrow { transition: transform 0.2s; font-size: 0.62rem; }
+  .expand-trigger.open .expand-arrow { transform: rotate(180deg); }
+  .expand-content { padding: 0 12px 10px; display: none; }
+  .expand-content.open { display: block; }
+  .expand-content p { font-size: 0.8rem; line-height: 1.6; color: #37474f; }
+
+  .didaktik-block { margin-bottom: 8px; }
+  .didaktik-block strong { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 3px; }
+  .didaktik-block p { font-size: 0.8rem; line-height: 1.5; color: #37474f; }
+
+  .method-top3 { display: flex; flex-direction: column; gap: 5px; margin-top: 4px; }
+  .method-item { border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 6px 9px; font-size: 0.78rem; cursor: pointer; transition: var(--transition); display: flex; align-items: flex-start; gap: 7px; }
+  .method-item:hover { border-color: var(--accent2); background: var(--accent2-pale); }
+  .method-item.method-fav { border-color: #c2185b; background: #fce4ec; }
+  .method-rank { font-weight: 700; color: var(--text-muted); font-size: 0.68rem; width: 18px; flex-shrink: 0; padding-top: 1px; }
+  .method-content { flex: 1; }
+  .method-name { font-weight: 700; color: var(--text); }
+  .method-desc { color: var(--text-muted); font-size: 0.73rem; margin-top: 2px; line-height: 1.4; }
+  .method-fav-star { font-size: 0.85rem; flex-shrink: 0; color: #c2185b; }
+
+  .card-tags { padding: 6px 12px; border-top: 1px solid var(--border); display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .tag-badge { font-size: 0.67rem; padding: 2px 6px; border-radius: 10px; font-weight: 700; }
+  .tag-badge.fav { background: #fce4ec; color: #c2185b; }
+  .tag-badge.inc { background: var(--danger-pale); color: var(--danger); }
+  .tag-badge.edited { background: var(--secondary-pale); color: var(--secondary); }
+  .tag-annot { font-size: 0.67rem; color: var(--text-muted); font-style: italic; }
+  .annot-bubble { background: var(--neutral-pale); border-left: 3px solid var(--neutral); padding: 4px 8px; border-radius: 0 5px 5px 0; font-size: 0.77rem; color: var(--text-muted); font-style: italic; margin-top: 3px; }
+  mark { background: #fff59d; color: inherit; border-radius: 2px; padding: 0 1px; }
+
+  /* ── PROMPT GENERATOR ── */
+  #prompt-view { background: var(--bg); overflow-y: auto; }
+  .pg-header { background: linear-gradient(135deg, var(--accent2) 0%, #4a148c 100%); color: white; padding: 18px 24px; display: flex; align-items: center; gap: 12px; }
+  .pg-header-icon { font-size: 1.8rem; flex-shrink: 0; }
+  .pg-header h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 3px; }
+  .pg-header p { font-size: 0.78rem; opacity: 0.85; line-height: 1.5; }
+  .pg-body { padding: 18px 22px; max-width: 1100px; }
+  .pg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .pg-section { background: var(--surface); border-radius: var(--radius); border: 1.5px solid var(--border); padding: 14px 16px; box-shadow: var(--shadow-sm); }
+  .pg-section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent2); margin-bottom: 11px; display: flex; align-items: center; gap: 6px; }
+  .pg-section-title .pg-num { background: var(--accent2); color: white; width: 19px; height: 19px; border-radius: 50%; font-size: 0.68rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pg-field { margin-bottom: 11px; }
+  .pg-field label { display: block; font-size: 0.73rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pg-field select, .pg-field input[type="number"], .pg-field input[type="text"] { width: 100%; padding: 7px 9px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.83rem; background: var(--bg); color: var(--text); font-family: var(--font); transition: var(--transition); }
+  .pg-field select:focus, .pg-field input:focus, .pg-field textarea:focus { outline: none; border-color: var(--accent2); background: white; }
+  .pg-field textarea { width: 100%; padding: 7px 9px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.83rem; resize: vertical; background: var(--bg); color: var(--text); font-family: var(--font); transition: var(--transition); min-height: 72px; }
+
+  .theme-selector { display: flex; flex-direction: column; gap: 7px; }
+  .theme-item { border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; transition: border-color var(--transition); }
+  .theme-item.selected { border-color: var(--accent2); }
+  .theme-item-header { display: flex; align-items: center; gap: 7px; padding: 7px 10px; background: var(--bg); cursor: pointer; user-select: none; font-size: 0.8rem; font-weight: 700; }
+  .theme-item-header:hover { background: var(--accent2-pale); }
+  .theme-item.selected .theme-item-header { background: var(--accent2-pale); color: var(--accent2); }
+  .theme-check { width: 15px; height: 15px; accent-color: var(--accent2); cursor: pointer; flex-shrink: 0; }
+  .theme-expand-btn { margin-left: auto; background: none; border: none; cursor: pointer; font-size: 0.72rem; color: var(--text-muted); padding: 2px 4px; transition: transform 0.2s; }
+  .theme-expand-btn.open { transform: rotate(180deg); }
+  .subtheme-list { padding: 5px 10px 7px 33px; display: none; }
+  .subtheme-list.open { display: block; }
+  .subtheme-item { display: flex; align-items: flex-start; gap: 6px; padding: 3px 0; font-size: 0.78rem; cursor: pointer; user-select: none; }
+  .subtheme-item input[type="checkbox"] { accent-color: var(--accent2); margin-top: 2px; flex-shrink: 0; }
+  .subtheme-item label { cursor: pointer; line-height: 1.35; }
+  .subtheme-item.selected label { color: var(--accent2); font-weight: 600; }
+  .lz-count { font-size: 0.65rem; background: var(--neutral-pale); color: var(--text-muted); padding: 1px 5px; border-radius: 10px; margin-left: 4px; }
+
+  .lz-list-section { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .lz-list-section h4 { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+  .lz-filter-bar { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 7px; }
+  .lz-filter-btn { padding: 3px 9px; border-radius: 20px; font-size: 0.68rem; font-weight: 600; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: var(--transition); user-select: none; }
+  .lz-filter-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .lz-filter-btn.active { background: var(--accent2); color: white; border-color: var(--accent2); }
+  .lz-items-container { max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); }
+  .lz-item-row { display: flex; align-items: flex-start; gap: 7px; padding: 6px 9px; border-bottom: 1px solid var(--border); font-size: 0.77rem; cursor: pointer; transition: var(--transition); }
+  .lz-item-row:last-child { border-bottom: none; }
+  .lz-item-row:hover { background: var(--accent2-pale); }
+  .lz-item-row.excluded { opacity: 0.45; background: #fafafa; }
+  .lz-item-check { accent-color: var(--accent2); flex-shrink: 0; margin-top: 2px; }
+  .lz-item-content { flex: 1; min-width: 0; }
+  .lz-item-id { font-family: monospace; font-size: 0.65rem; color: var(--text-muted); font-weight: 700; }
+  .lz-item-text { line-height: 1.3; color: var(--text); }
+  .lz-item-badges { display: flex; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
+  .lz-item-badge { font-size: 0.6rem; padding: 1px 5px; border-radius: 8px; font-weight: 700; }
+  .lz-item-badge.fav { background: #fce4ec; color: #c2185b; }
+  .lz-item-badge.r3 { background: #ffebee; color: #c62828; }
+  .lz-item-badge.r2 { background: #fff3e0; color: #e65100; }
+  .lz-item-badge.r1 { background: #e8f5e9; color: #2e7d32; }
+  .lz-item-badge.tag { background: var(--accent2-pale); color: var(--accent2); }
+
+  .info-badge { display: inline-flex; align-items: center; gap: 4px; background: var(--accent2-pale); color: var(--accent2); padding: 3px 9px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; margin-top: 5px; }
+
+  .check-group { display: flex; flex-direction: column; gap: 6px; }
+  .check-item { display: flex; align-items: flex-start; gap: 7px; font-size: 0.81rem; cursor: pointer; }
+  .check-item input[type="checkbox"] { accent-color: var(--accent2); margin-top: 2px; flex-shrink: 0; }
+  .radio-group { display: flex; flex-wrap: wrap; gap: 6px; }
+  .radio-chip { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: var(--transition); user-select: none; }
+  .radio-chip:hover { border-color: var(--accent2); color: var(--accent2); }
+  .radio-chip.selected { background: var(--accent2); color: white; border-color: var(--accent2); }
+  .range-wrap { display: flex; align-items: center; gap: 9px; }
+  .range-wrap input[type="range"] { flex: 1; accent-color: var(--accent2); }
+  .range-val { font-weight: 700; font-size: 0.85rem; color: var(--accent2); min-width: 26px; text-align: center; }
+  .pct-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pct-chip { padding: 5px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: var(--transition); user-select: none; }
+  .pct-chip:hover { border-color: var(--accent2); color: var(--accent2); }
+  .pct-chip.selected { background: var(--accent2); color: white; border-color: var(--accent2); }
+
+  .pg-output-wrap { background: var(--surface); border-radius: var(--radius); border: 2px solid var(--accent2); box-shadow: var(--shadow-md); margin-top: 18px; overflow: hidden; }
+  .pg-output-header { background: var(--accent2); color: white; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
+  .pg-output-header h3 { font-size: 0.85rem; font-weight: 700; }
+  .pg-output-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+  .pg-output-btn { padding: 4px 12px; border-radius: var(--radius-sm); border: 1.5px solid rgba(255,255,255,0.5); background: rgba(255,255,255,0.15); color: white; cursor: pointer; font-size: 0.78rem; font-weight: 700; transition: var(--transition); }
+  .pg-output-btn:hover { background: rgba(255,255,255,0.3); }
+  .pg-output-btn.copy-btn { background: white; color: var(--accent2); border-color: white; }
+  .pg-output-btn.copy-btn:hover { background: #f3e5f5; }
+  .pg-output-btn.export-prompt-btn { background: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.6); }
+  .pg-output-btn.export-prompt-btn:hover { background: rgba(255,255,255,0.4); }
+  #prompt-preview { padding: 16px 18px; font-size: 0.8rem; line-height: 1.7; color: var(--text); white-space: pre-wrap; font-family: 'Courier New', monospace; min-height: 180px; max-height: 400px; overflow-y: auto; background: #fafafa; }
+  #prompt-preview.empty { color: var(--text-muted); font-style: italic; font-family: var(--font); }
+
+  .pg-generate-bar { display: flex; gap: 11px; align-items: center; justify-content: center; padding: 14px 0 0; }
+  .btn-generate { padding: 10px 26px; background: var(--accent2); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem; font-weight: 700; transition: var(--transition); display: flex; align-items: center; gap: 7px; box-shadow: var(--shadow-md); }
+  .btn-generate:hover { background: #4a148c; transform: translateY(-1px); }
+  .btn-reset-pg { padding: 10px 16px; background: var(--neutral-pale); color: var(--text-muted); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; font-size: 0.83rem; font-weight: 600; transition: var(--transition); }
+  .btn-reset-pg:hover { background: var(--border); }
+
+  /* ── MODALS ── */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.48); display: flex; align-items: center; justify-content: center; z-index: 500; padding: 20px; backdrop-filter: blur(2px); }
+  .modal-overlay.hidden { display: none; }
+  .modal { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-lg); width: 100%; max-width: 660px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; }
+  .modal-sm { max-width: 480px; }
+  .modal-header { padding: 13px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+  .modal-header h2 { font-size: 0.92rem; font-weight: 700; }
+  .modal-body { padding: 16px 18px; flex: 1; }
+  .modal-footer { padding: 11px 18px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; position: sticky; bottom: 0; background: var(--surface); }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 0.73rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .form-group textarea, .form-group input[type="text"], .form-group select { width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.84rem; font-family: var(--font); color: var(--text); background: var(--bg); transition: var(--transition); resize: vertical; }
+  .form-group textarea:focus, .form-group input[type="text"]:focus, .form-group select:focus { outline: none; border-color: var(--primary-light); background: white; }
+  .form-group input[type="file"] { font-size: 0.83rem; color: var(--text-muted); }
+  .btn { padding: 6px 14px; border-radius: var(--radius-sm); border: none; cursor: pointer; font-size: 0.84rem; font-weight: 700; transition: var(--transition); }
+  .btn-primary { background: var(--primary); color: white; } .btn-primary:hover { background: #1b4332; }
+  .btn-secondary { background: var(--neutral-pale); color: var(--text); } .btn-secondary:hover { background: var(--border); }
+  .btn-danger { background: var(--danger-pale); color: var(--danger); border: 1px solid #ffcdd2; } .btn-danger:hover { background: #ffcdd2; }
+  .btn-accent2 { background: var(--accent2); color: white; } .btn-accent2:hover { background: #4a148c; }
+
+  /* Import modal specifics */
+  .import-option-row { display: flex; gap: 10px; margin-top: 10px; }
+  .import-option-btn { flex: 1; padding: 12px 10px; border: 2px solid var(--border); border-radius: var(--radius); cursor: pointer; text-align: center; transition: var(--transition); background: var(--surface); }
+  .import-option-btn:hover { border-color: var(--primary-light); background: var(--primary-pale); }
+  .import-option-btn.selected { border-color: var(--primary); background: var(--primary-pale); }
+  .import-option-btn .opt-icon { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+  .import-option-btn .opt-title { font-size: 0.82rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 3px; }
+  .import-option-btn .opt-desc { font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; }
+  .import-option-btn.merge-opt:hover { border-color: var(--accent2); background: var(--accent2-pale); }
+  .import-option-btn.merge-opt.selected { border-color: var(--accent2); background: var(--accent2-pale); }
+
+  .tag-modal-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; min-height: 32px; padding: 5px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); }
+  .tag-modal-tag { padding: 3px 8px; border-radius: 10px; font-size: 0.73rem; font-weight: 700; background: var(--accent2-pale); color: var(--accent2); border: 1px solid #ce93d8; display: flex; align-items: center; gap: 4px; }
+  .tag-modal-tag .rm { cursor: pointer; opacity: 0.6; }
+  .tag-modal-tag .rm:hover { opacity: 1; }
+  .global-tags-hint { font-size: 0.73rem; color: var(--text-muted); margin-bottom: 6px; }
+  .global-tag-option { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; border: 1.5px solid #ce93d8; color: var(--accent2); cursor: pointer; margin: 2px; transition: var(--transition); background: var(--surface); }
+  .global-tag-option:hover { background: var(--accent2-pale); }
+  .tag-input-wrap { display: flex; gap: 6px; margin-top: 7px; }
+  .tag-modal-input { flex: 1; padding: 6px 9px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.81rem; background: var(--bg); }
+  .tag-modal-input:focus { outline: none; border-color: var(--accent2); }
+  .tag-modal-add { padding: 6px 12px; background: var(--accent2); color: white; border: none; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.81rem; font-weight: 700; }
+
+  .export-opt { padding: 11px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition); margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .export-opt:hover { border-color: var(--primary-light); background: var(--primary-pale); }
+  .export-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .export-title { font-weight: 700; font-size: 0.86rem; }
+  .export-desc { font-size: 0.74rem; color: var(--text-muted); margin-top: 2px; }
+
+  #empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); display: none; }
+  #empty-state .ei { font-size: 2.8rem; margin-bottom: 11px; }
+  #empty-state h3 { font-size: 1rem; margin-bottom: 4px; color: var(--text); }
+
+  #data-status { background: var(--danger-pale); border: 1px solid #ffcdd2; border-radius: var(--radius-sm); padding: 10px 14px; margin: 12px; font-size: 0.82rem; color: var(--danger); display: none; }
+  #data-status.info { background: var(--secondary-pale); border-color: #90caf9; color: var(--secondary); }
+
+  #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 6px; }
+  .toast { background: #1a2327; color: white; padding: 8px 13px; border-radius: var(--radius-sm); font-size: 0.81rem; box-shadow: var(--shadow-md); max-width: 300px; animation: toastIn 0.3s ease; }
+  .toast.success { border-left: 4px solid #4caf50; } .toast.error { border-left: 4px solid var(--danger); } .toast.info { border-left: 4px solid var(--secondary); }
+  @keyframes toastIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  @media (max-width: 760px) {
+    #sidebar { width: 100%; position: fixed; top: 60px; left: 0; bottom: 0; z-index: 50; transform: translateX(-100%); transition: transform 0.3s; }
+    #sidebar.mobile-open { transform: translateX(0); }
+    #card-grid { grid-template-columns: 1fr; }
+    .pg-grid { grid-template-columns: 1fr; }
+    .import-option-row { flex-direction: column; }
+  }
+  @media (max-width: 900px) { .pg-grid { grid-template-columns: 1fr; } }
+  @media print {
+    #topbar, #sidebar, #toolbar, .card-actions, .expand-trigger { display: none !important; }
+    #app { display: block; height: auto; }
+    #content-area { overflow: visible; padding: 0; }
+    .card { break-inside: avoid; margin-bottom: 12px; box-shadow: none; border: 1px solid #ccc; }
+    .expand-content { display: block !important; }
+  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--neutral); }
+</style>
+</head>
+<body>
+
+<div id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Lernziele werden geladen…</div>
+</div>
+
+<div id="topbar">
+  <button class="topbar-btn" id="sidebar-toggle-btn">☰</button>
+  <h1>Evolutionsbezug Biologie <span>Thüringen · Gymnasium · Kl. 7–8</span></h1>
+  <button class="topbar-btn active-view" id="view-lernziele-btn">📋 Lernziele</button>
+  <button class="topbar-btn accent2" id="view-prompt-btn">🤖 KI-Prompt</button>
+  <button class="topbar-btn" id="export-open-btn">⬇ Export</button>
+  <button class="topbar-btn" id="import-open-btn">⬆ Import</button>
+  <button class="topbar-btn accent" id="reset-all-btn">↺ Reset</button>
+</div>
+
+<div id="app">
+  <div id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-header" data-target="sec-search">🔍 Suche <span class="toggle-icon">▾</span></div>
+      <div class="sidebar-body" id="sec-search">
+        <div id="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="search-input" placeholder="ID, Thema, Lernziel…">
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-header" data-target="sec-filter">🎛 Filter <span class="toggle-icon">▾</span></div>
+      <div class="sidebar-body" id="sec-filter">
+        <span class="filter-label">Thema</span>
+        <div class="filter-chips" id="thema-chips"></div>
+        <span class="filter-label">Unterthema</span>
+        <select id="unterthema-select" class="filter-select"><option value="">Alle Unterthemen</option></select>
+        <span class="filter-label">Evolutionsrelevanz</span>
+        <div class="filter-chips" id="rel-chips">
+          <span class="chip r1" data-rel="1">● Gering</span>
+          <span class="chip r2" data-rel="2">●● Mittel</span>
+          <span class="chip r3" data-rel="3">●●● Hoch</span>
+        </div>
+        <span class="filter-label" id="method-filter-label">Didaktische Methode <span class="toggle-arrow">▾</span></span>
+        <div class="filter-chips" id="method-chips"></div>
+        <span class="filter-label" id="evokonzept-filter-label">Evolutionskonzept <span class="toggle-arrow">▾</span></span>
+        <div id="evokonzept-tree"></div>
+        <span class="filter-label">Markierungen</span>
+        <div class="filter-chips" id="tag-chips">
+          <span class="chip fav" data-tag="fav">❤ Favoriten</span>
+          <span class="chip inc" data-tag="inc">⚠ Fehlerhaft</span>
+          <span class="chip edited" data-tag="edited">✏ Bearbeitet</span>
+        </div>
+        <span class="filter-label">Eigene Tags</span>
+        <div class="user-tags-display" id="user-tag-filter-display"></div>
+        <div class="user-tag-input-wrap">
+          <input type="text" class="user-tag-input" id="global-tag-input" placeholder="Neuen Tag erstellen…">
+          <button class="user-tag-add-btn" id="global-tag-add-btn">+ Tag</button>
+        </div>
+        <button class="reset-btn" id="clear-filters-btn">✕ Alle Filter zurücksetzen</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-header" data-target="sec-stats">📊 Statistik <span class="toggle-icon">▾</span></div>
+      <div class="sidebar-body" id="sec-stats">
+        <div class="chart-container"><canvas id="chart-canvas"></canvas></div>
+        <div id="stats-detail"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-header" data-target="sec-planner">📅 Unterrichtsplaner <span class="toggle-icon">▾</span></div>
+      <div class="sidebar-body hidden" id="sec-planner">
+        <div id="planner-info" style="font-size:0.79rem;color:var(--text-muted)">Noch keine Favoriten markiert.</div>
+        <button class="reset-btn" id="export-plan-btn">📋 Stundenplan als Markdown</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-header" data-target="sec-info">ℹ Info <span class="toggle-icon">▾</span></div>
+      <div class="sidebar-body hidden" id="sec-info">
+        <p style="font-size:0.75rem;line-height:1.6;color:var(--text-muted)">
+          Evolutionsbezug aller Lernziele des Thüringer Lehrplans Biologie Gy 7–8.<br><br>
+          <strong>Relevanz:</strong> 🟢 Gering · 🟡 Mittel · 🔴 Hoch<br><br>
+          Annotationen werden lokal gespeichert.<br><br>
+          <strong>Tastenkürzel:</strong> Strg+F → Suche · Esc → Modal schließen
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="main">
+    <!-- LERNZIELE VIEW -->
+    <div class="view active" id="lernziele-view">
+      <div id="data-status"></div>
+      <div id="toolbar">
+        <span class="tb-label">Sortieren:</span>
+        <select id="sort-select">
+          <option value="id">ID</option>
+          <option value="thema">Thema</option>
+          <option value="rel-asc">Relevanz ↑</option>
+          <option value="rel-desc">Relevanz ↓</option>
+          <option value="fav-first">Favoriten zuerst</option>
+        </select>
+        <button class="tb-btn" id="expand-all-btn">⊕ Alle aufklappen</button>
+        <button class="tb-btn" id="collapse-all-btn">⊖ Alle zuklappen</button>
+        <button class="tb-btn" id="print-btn">🖨 Drucken</button>
+        <div id="view-toggle">
+          <button id="btn-grid" class="active">⊞</button>
+          <button id="btn-list">☰</button>
+        </div>
+        <span id="result-count"></span>
+      </div>
+      <div id="content-area">
+        <div id="card-grid"></div>
+        <div id="empty-state">
+          <div class="ei">🔍</div>
+          <h3>Keine Einträge gefunden</h3>
+          <p>Filter oder Suchbegriff anpassen.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROMPT GENERATOR VIEW -->
+    <div class="view" id="prompt-view">
+      <div class="pg-header">
+        <div class="pg-header-icon">🤖</div>
+        <div>
+          <h2>KI-Prompt Generator – Unterrichtsplanung Evolution</h2>
+          <p>Maßgeschneiderter Prompt für KI-Sprachmodelle mit allen relevanten Lernzielen und Präferenzen.</p>
+        </div>
+      </div>
+      <div class="pg-body">
+
+        <!-- Section 1 -->
+        <div class="pg-grid" style="grid-template-columns:1fr">
+          <div class="pg-section">
+            <div class="pg-section-title"><span class="pg-num">1</span> Themen, Unterthemen und Lernziele</div>
+            <div class="theme-selector" id="pg-theme-selector"></div>
+            <div class="info-badge" id="pg-lz-badge">0 Lernziele ausgewählt</div>
+            <div class="lz-list-section" id="pg-lz-list-section" style="display:none">
+              <h4 id="pg-lz-list-toggle">Lernziele für diesen Prompt <span style="font-size:0.65rem;color:var(--text-muted);font-weight:400">▾ ein-/ausblenden</span></h4>
+              <div id="pg-lz-list-body">
+                <div class="lz-filter-bar" id="pg-lz-filter-bar">
+                  <span class="lz-filter-btn active" data-lzfilter="all">Alle</span>
+                  <span class="lz-filter-btn" data-lzfilter="fav">❤ Favoriten</span>
+                  <span class="lz-filter-btn" data-lzfilter="r3">🔴 Hoch relevant</span>
+                  <span class="lz-filter-btn" data-lzfilter="r2">🟡 Mittel</span>
+                  <span class="lz-filter-btn" data-lzfilter="notes">📝 Mit Notizen</span>
+                </div>
+                <div id="pg-lz-tag-filters" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+                <div class="lz-items-container" id="pg-lz-items"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sections 2+3 -->
+        <div class="pg-grid" style="margin-top:15px">
+          <div class="pg-section">
+            <div class="pg-section-title"><span class="pg-num">2</span> Unterrichtsrahmen</div>
+            <div class="pg-field">
+              <label>Klassenstufe(n)</label>
+              <div class="radio-group" id="pg-klasse">
+                <span class="radio-chip selected" data-val="7">Klasse 7</span>
+                <span class="radio-chip" data-val="8">Klasse 8</span>
+                <span class="radio-chip" data-val="7-8">Kl. 7–8</span>
+              </div>
+            </div>
+            <div class="pg-field">
+              <label>Anzahl Unterrichtsstunden</label>
+              <div class="range-wrap">
+                <input type="range" id="pg-num-lessons" min="1" max="10" value="4" step="1">
+                <span class="range-val" id="pg-num-lessons-val">4</span>
+              </div>
+            </div>
+            <div class="pg-field">
+              <label>Stundenformat</label>
+              <div class="radio-group" id="pg-stunden-format">
+                <span class="radio-chip selected" data-val="45">45 Min.</span>
+                <span class="radio-chip" data-val="60">60 Min.</span>
+                <span class="radio-chip" data-val="90">90 Min.</span>
+                <span class="radio-chip" data-val="other">Andere</span>
+              </div>
+            </div>
+            <div class="pg-field" id="pg-format-other-wrap" style="display:none">
+              <label>Andere Stundenlänge (Min.)</label>
+              <input type="number" id="pg-format-other" placeholder="z.B. 75" min="20" max="240">
+            </div>
+          </div>
+
+          <div class="pg-section">
+            <div class="pg-section-title"><span class="pg-num">3</span> Evolutionsbezug und Vorwissen</div>
+            <div class="pg-field">
+              <label>Vorwissen in der Lerngruppe</label>
+              <div class="radio-group" id="pg-vorwissen">
+                <span class="radio-chip selected" data-val="keins">Kein Vorwissen</span>
+                <span class="radio-chip" data-val="grundlagen">Grundbegriffe bekannt</span>
+                <span class="radio-chip" data-val="solide">Solides Grundwissen</span>
+              </div>
+              <div style="margin-top:8px">
+                <textarea id="pg-vorwissen-notiz" placeholder="Weitere Angaben zum Vorwissen…" rows="2" style="width:100%;padding:7px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;background:var(--bg);font-family:var(--font);resize:vertical"></textarea>
+              </div>
+            </div>
+            <div class="pg-field">
+              <label>Anteil Evolutionsbezug</label>
+              <div class="pct-group" id="pg-evo-pct">
+                <span class="pct-chip" data-val="5">5%</span>
+                <span class="pct-chip" data-val="25">25%</span>
+                <span class="pct-chip selected" data-val="50">50%</span>
+                <span class="pct-chip" data-val="75">75%</span>
+                <span class="pct-chip" data-val="100">100%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sections 4+5 -->
+        <div class="pg-grid" style="margin-top:15px">
+          <div class="pg-section">
+            <div class="pg-section-title"><span class="pg-num">4</span> Wissenschaftlich-konzeptueller Fokus</div>
+            <div class="pg-field">
+              <label>Evolutionskonzepte betonen</label>
+              <div class="check-group" id="pg-evo-konzepte">
+                <span style="font-size:0.78rem;color:var(--text-muted)">Bitte zuerst Lernziele auswählen.</span>
+              </div>
+            </div>
+            <div class="pg-field" style="margin-top:8px">
+              <label>Zusätzliche fachliche Schwerpunkte</label>
+              <textarea id="pg-fach-notizen" placeholder="z.B. Schwerpunkt auf molekulare Belege…" style="width:100%;padding:7px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;background:var(--bg);font-family:var(--font);resize:vertical;min-height:60px"></textarea>
+            </div>
+          </div>
+
+          <div class="pg-section">
+            <div class="pg-section-title"><span class="pg-num">5</span> Didaktische Methoden</div>
+            <div class="pg-field">
+              <label>Empfohlene Methoden (aus gewählten LZ)</label>
+              <div class="check-group" id="pg-lehrformen-recommended">
+                <span style="font-size:0.78rem;color:var(--text-muted)">Bitte zuerst Lernziele auswählen.</span>
+              </div>
+            </div>
+            <div class="pg-field" style="margin-top:8px">
+              <label>Weitere Methoden</label>
+              <div class="check-group" id="pg-lehrformen-extra"></div>
+            </div>
+            <div class="pg-field" style="margin-top:8px">
+              <label>Differenzierung</label>
+              <div class="check-group" id="pg-differenzierung">
+                <label class="check-item"><input type="checkbox" value="basis-erweiterung"> Basis- und Erweiterungsaufgaben</label>
+                <label class="check-item"><input type="checkbox" value="sprachlich"> Sprachliche Differenzierung</label>
+                <label class="check-item"><input type="checkbox" value="tempo"> Unterschiedliche Lerntempi</label>
+              </div>
+            </div>
+            <div class="pg-field" style="margin-top:8px">
+              <label>Didaktische Hinweise</label>
+              <textarea id="pg-did-notizen" placeholder="z.B. kein Labor vorhanden…" style="width:100%;padding:7px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;background:var(--bg);font-family:var(--font);resize:vertical;min-height:60px"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sections 6+7 -->
+        <div class="pg-grid" style="margin-top:15px">
+          <div class="pg-section">
+            <div class="pg-section-title"><span class="pg-num">6</span> Evaluation und Leistungserhebung</div>
+            <div class="check-group" id="pg-bewertung">
+              <label class="check-item"><input type="checkbox" value="formativ"> Formative Beurteilung (laufend)</label>
+              <label class="check-item"><input type="checkbox" value="quiz"> Quiz</label>
+              <label class="check-item"><input type="checkbox" value="praesentation"> Präsentationen, Poster, Flyer</label>
+              <label class="check-item"><input type="checkbox" value="reflexion"> Schriftliche Reflexion</label>
+              <label class="check-item"><input type="checkbox" value="portfolio"> Portfolio / Lerntagebuch</label>
+              <label class="check-item"><input type="checkbox" value="klassenarbeit"> Klassenarbeit / LEK</label>
+              <label class="check-item"><input type="checkbox" value="praktisch"> Praktische Leistungen</label>
+            </div>
+            <textarea id="pg-eval-notizen" placeholder="Weitere Hinweise zur Evaluation…" style="width:100%;margin-top:8px;padding:7px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;background:var(--bg);font-family:var(--font);resize:vertical;min-height:50px"></textarea>
+          </div>
+
+          <div class="pg-section">
+            <div class="pg-section-title"><span class="pg-num">7</span> Gesellschaftliche Bezüge</div>
+            <div class="check-group" id="pg-kontext">
+              <label class="check-item"><input type="checkbox" value="biodiversitaet"> Biodiversitätskrise</label>
+              <label class="check-item"><input type="checkbox" value="naturschutz"> Naturschutz und Arterhaltung</label>
+              <label class="check-item"><input type="checkbox" value="klimawandel"> Klimawandel und Artenanpassung</label>
+              <label class="check-item"><input type="checkbox" value="pandemie"> Pandemien und Virusevolution</label>
+              <label class="check-item"><input type="checkbox" value="gesundheit"> Gesundheit und evolutionäre Medizin</label>
+              <label class="check-item"><input type="checkbox" value="antibiotikaresistenz"> Antibiotikaresistenz</label>
+              <label class="check-item"><input type="checkbox" value="psychisch"> Psychische Gesundheit</label>
+              <label class="check-item"><input type="checkbox" value="landwirtschaft"> Landwirtschaft und Lebensmittelherstellung</label>
+              <label class="check-item"><input type="checkbox" value="biotechnologie"> Biotechnologie und Gentechnik</label>
+            </div>
+            <textarea id="pg-kontext-notizen" placeholder="Weitere Hinweise…" style="width:100%;margin-top:8px;padding:7px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;background:var(--bg);font-family:var(--font);resize:vertical;min-height:50px"></textarea>
+          </div>
+        </div>
+
+        <!-- Section 8 -->
+        <div class="pg-grid" style="margin-top:15px; grid-template-columns:1fr">
+          <div class="pg-section">
+            <div class="pg-section-title"><span class="pg-num">8</span> Ausgabeformat</div>
+            <div class="pg-grid">
+              <div>
+                <div class="pg-field">
+                  <label>KI soll erstellen</label>
+                  <div class="check-group" id="pg-ausgabe-typ">
+                    <label class="check-item"><input type="checkbox" value="sequenzplan" checked> Vollständige Unterrichtssequenz mit Verlaufsplänen</label>
+                    <label class="check-item"><input type="checkbox" value="lernziele"> Operationalisierte Lernziele pro Stunde</label>
+                    <label class="check-item"><input type="checkbox" value="methoden" checked> Methodische Vorschläge pro Stunde</label>
+                    <label class="check-item"><input type="checkbox" value="materialien"> Hinweise auf Materialien / Medien</label>
+                    <label class="check-item"><input type="checkbox" value="fehlvorstellungen"> Schülerfehlvorstellungen</label>
+                    <label class="check-item"><input type="checkbox" value="differenzierung"> Differenzierungsvorschläge</label>
+                    <label class="check-item"><input type="checkbox" value="transferfragen" checked> Transfer- und Diskussionsfragen</label>
+                    <label class="check-item"><input type="checkbox" value="querverbindungen"> Querverbindungen zwischen LZ</label>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div class="pg-field">
+                  <label>Ton der KI-Ausgabe</label>
+                  <div class="radio-group" id="pg-ausgabe-ton">
+                    <span class="radio-chip" data-val="akademisch">Akademisch</span>
+                    <span class="radio-chip selected" data-val="professionell">Professionell</span>
+                    <span class="radio-chip" data-val="praxisnah">Praxisnah</span>
+                  </div>
+                </div>
+                <div class="pg-field" style="margin-top:10px">
+                  <label>Länge</label>
+                  <div class="radio-group" id="pg-ausgabe-laenge">
+                    <span class="radio-chip" data-val="kurz">Kompakt</span>
+                    <span class="radio-chip selected" data-val="mittel">Ausführlich</span>
+                    <span class="radio-chip" data-val="lang">Sehr ausführlich</span>
+                  </div>
+                </div>
+                <div class="pg-field" style="margin-top:10px">
+                  <label>Sonstige Hinweise</label>
+                  <textarea id="pg-sonstige-notizen" placeholder="z.B. Antworte auf Deutsch; Markdown-Tabellen verwenden…" style="width:100%;padding:7px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.83rem;background:var(--bg);font-family:var(--font);resize:vertical;min-height:60px"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pg-generate-bar">
+          <button class="btn-reset-pg" id="pg-reset-btn">↺ Zurücksetzen</button>
+          <button class="btn-generate" id="pg-generate-btn">✨ Prompt generieren</button>
+        </div>
+
+        <div class="pg-output-wrap" id="pg-output-wrap" style="display:none">
+          <div class="pg-output-header">
+            <h3>📋 Generierter KI-Prompt</h3>
+            <div class="pg-output-actions">
+              <button class="pg-output-btn" id="pg-regenerate-btn">↻ Neu</button>
+              <button class="pg-output-btn copy-btn" id="pg-copy-btn">📋 Kopieren</button>
+              <button class="pg-output-btn export-prompt-btn" id="pg-export-prompt-btn">📤 Prompt-Daten exportieren</button>
+            </div>
+          </div>
+          <div id="prompt-preview" class="empty">Prompt wird hier erscheinen…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay hidden" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>✏ Bearbeiten – <span id="edit-modal-id"></span></h2>
+      <button class="icon-btn" id="edit-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Wissenschaftliche Begründung</label><textarea id="edit-wiss" rows="5"></textarea></div>
+      <div class="form-group"><label>Evolutionskonzepte (kommagetrennt)</label><input type="text" id="edit-konzepte"></div>
+      <div class="form-group"><label>Evolutionsrelevanz</label>
+        <select id="edit-relevanz"><option value="1">1 – Gering</option><option value="2">2 – Mittel</option><option value="3">3 – Hoch</option></select>
+      </div>
+      <div class="form-group"><label>Didaktischer Impuls</label><textarea id="edit-impuls" rows="3"></textarea></div>
+      <div class="form-group"><label>Methoden (eine pro Zeile)</label><textarea id="edit-methoden" rows="4"></textarea></div>
+      <div class="form-group"><label>Persönliche Notizen</label><textarea id="edit-notes" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="edit-cancel-btn">Abbrechen</button>
+      <button class="btn btn-primary" id="edit-save-btn">💾 Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANNOTATION MODAL -->
+<div class="modal-overlay hidden" id="annot-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2 id="annot-modal-title">Markierung</h2>
+      <button class="icon-btn" id="annot-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Anmerkung (optional)</label><textarea id="annot-text" rows="4"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="annot-cancel-btn">Abbrechen</button>
+      <button class="btn btn-danger" id="annot-remove-btn">Markierung entfernen</button>
+      <button class="btn btn-primary" id="annot-save-btn">✓ Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAG MODAL -->
+<div class="modal-overlay hidden" id="tag-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>🏷 Tags – <span id="tag-modal-id"></span></h2>
+      <button class="icon-btn" id="tag-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Aktuelle Tags</label>
+        <div class="tag-modal-tags" id="tag-modal-current"></div>
+      </div>
+      <div class="form-group">
+        <label>Globale Tags</label>
+        <p class="global-tags-hint">Klicke zum Hinzufügen:</p>
+        <div id="tag-modal-global-options"></div>
+      </div>
+      <div class="form-group">
+        <label>Neuen Tag erstellen</label>
+        <div class="tag-input-wrap">
+          <input type="text" class="tag-modal-input" id="tag-modal-new-input" placeholder="Tag eingeben…">
+          <button class="tag-modal-add" id="tag-modal-add-btn">+ Hinzufügen</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="tag-cancel-btn">Schließen</button>
+      <button class="btn btn-accent2" id="tag-save-btn">✓ Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay hidden" id="export-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>⬇ Exportieren</h2>
+      <button class="icon-btn" id="export-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="export-opt" data-export="all"><span class="export-icon">📦</span><div><div class="export-title">Vollständiger Datensatz (JSON)</div><div class="export-desc">Alle Einträge mit allen Feldern, Bearbeitungen, Tags und Notizen</div></div></div>
+      <div class="export-opt" data-export="edited"><span class="export-icon">✏</span><div><div class="export-title">Nur bearbeitete Lernziele (JSON)</div><div class="export-desc">Einträge mit nutzerseitig geänderten Feldern (inkl. aller Edits)</div></div></div>
+      <div class="export-opt" data-export="with-notes"><span class="export-icon">📝</span><div><div class="export-title">Nur Lernziele mit Notizen (JSON)</div><div class="export-desc">Einträge mit favNote, incNote oder Notizen</div></div></div>
+      <div class="export-opt" data-export="with-usertags"><span class="export-icon">🏷</span><div><div class="export-title">Lernziele mit eigenen Tags (JSON)</div><div class="export-desc">Einträge mit nutzerspezifischen Tags</div></div></div>
+      <div class="export-opt" data-export="favorites"><span class="export-icon">❤</span><div><div class="export-title">Nur Favoriten (JSON)</div><div class="export-desc">Als Favorit markierte Einträge</div></div></div>
+      <div class="export-opt" data-export="filtered"><span class="export-icon">🎛</span><div><div class="export-title">Gefilterte Einträge (JSON)</div><div class="export-desc">Aktuell angezeigte Einträge (<span id="export-count">0</span>)</div></div></div>
+      <div class="export-opt" data-export="csv"><span class="export-icon">📊</span><div><div class="export-title">Gesamtübersicht (CSV)</div><div class="export-desc">Für Excel/LibreOffice Calc</div></div></div>
+      <div class="export-opt" data-export="markdown"><span class="export-icon">📋</span><div><div class="export-title">Unterrichtsplan (Markdown)</div><div class="export-desc">Favoriten als strukturierter Plan</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay hidden" id="import-modal">
+  <div class="modal modal-sm">
+    <div class="modal-header">
+      <h2>⬆ Importieren</h2>
+      <button class="icon-btn" id="import-close-btn">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>JSON-Datei auswählen</label>
+        <input type="file" id="import-file" accept=".json">
+      </div>
+      <p style="font-size:0.8rem;font-weight:700;color:var(--text);margin:10px 0 6px">Wie soll importiert werden?</p>
+      <div class="import-option-row">
+        <div class="import-option-btn selected" id="import-opt-replace" data-mode="replace">
+          <span class="opt-icon">🔄</span>
+          <span class="opt-title">Neue Session</span>
+          <span class="opt-desc">Ersetzt alle aktuellen Daten durch den Inhalt der Datei. Ideal zum Laden eines gespeicherten Standes.</span>
+        </div>
+        <div class="import-option-btn merge-opt" id="import-opt-merge" data-mode="merge">
+          <span class="opt-icon">🔀</span>
+          <span class="opt-title">Zusammenführen</span>
+          <span class="opt-desc">Fügt nur Annotationen, Tags und Notizen aus der Datei zur aktuellen Session hinzu. Lernzieldaten bleiben unverändert.</span>
+        </div>
+      </div>
+      <div id="import-preview" style="display:none;margin-top:10px;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:0.77rem;color:var(--text-muted);"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="import-cancel-btn">Abbrechen</button>
+      <button class="btn btn-primary" id="import-save-btn">📥 Importieren</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── CONFIGURATION ─────────────────────────────────────────────────────────
+  var DATA_URLS = [
+    'https://raw.githubusercontent.com/dustineirdosh/thuringia_lp/refs/heads/main/data/lernziele_gy78_evolution.json'
+  ];
+  var DATA_KEYS = ['eintraege', 'evolutionsbezug_und_didaktik', 'lernziele', 'data', 'items'];
+
+  var LS_ANN   = 'bio_annotations_v3';
+  var LS_EDIT  = 'bio_edits_v3';
+  var LS_UTAGS = 'bio_user_tags_v1';
+
+  var REL_LABELS = { 1: '● Gering', 2: '●● Mittel', 3: '●●● Hoch' };
+  var THEMA_DISPLAY = { 'Biologie des Menschen': 'Bio-Mensch' };
+
+  var EVO_HIERARCHY = [
+    { p: 'Variation und Diversität', c: ['genetische Variation','phänotypische Variation','Rekombination','Gentransfer','Epigenetik','Modifikation','Phänotypische Plastizität'] },
+    { p: 'Vererbung von Merkmalen', c: ['genetische','epigenetische','soziale/kulturelle','ökologische'] },
+    { p: 'Natürliche Selektion und Selektionsdruck', c: ['stabilisierende Selektion','gerichtete Selektion','balancierende Selektion','frequenzabhängige Selektion','Trade-offs/Zielkonflikte','sexuelle Selektion','Fitness'] },
+    { p: 'Anpassung und Angepasstheit', c: ['Funktion von Merkmalen','Exaptation (Umfunktionieren von Merkmalen)','Evolutionäres Mismatch'] },
+    { p: 'Gendrift', c: ['Migration/Genfluss','Flaschenhalseffekt','Gründereffekt'] },
+    { p: 'Lebensgeschichte / Life-History-Theorie', c: [] },
+    { p: 'Koevolution', c: ['Domestikation','Nischenkonstruktion'] },
+    { p: 'Multilevel-Selektion', c: ['Gruppenselektion','Inklusive Fitness','Verwandtenselektion (Kin Selection)'] },
+    { p: 'Endosymbiontentheorie', c: [] },
+    { p: 'Evolution von Einzellern zu Vielzellern', c: [] },
+    { p: 'Verwandtenselektion', c: [] },
+    { p: 'Evolution von Kooperation/Altruismus', c: [] },
+    { p: 'Tiefenzeit', c: ['geologische Epochen','Fossilien','Übergangsformen/Entwicklungslinien'] },
+    { p: 'Stammbäume und phylogenetische Systematik', c: ['gemeinsame Abstammung/Verwandtschaft','Konservierung von Merkmalen (gemeinsame genetische Grundlagen, Baupläne, Entwicklungsprozesse usw.)','Homologie und Analogie/Konvergente und divergente Evolution'] },
+    { p: 'Artbildung und adaptive Radiation', c: [] },
+    { p: 'Aussterben', c: [] },
+    { p: 'Evolutionäre Entwicklungsbiologie (Evo-Devo)', c: ['biogenetische Grundregel'] },
+    { p: 'kulturelle Evolution', c: [] }
+  ];
+
+  var ALL_METHODS = [
+    'Forschendes Lernen','Konzeptuelles Lernen','Kooperative Lernformen',
+    'Projektbasiertes Lernen','Erfahrungsbasiertes Lernen','Diskussion',
+    'Narrativer Zugang','Analogien und Vergleiche','Modelle und Simulationen',
+    'Einblick in Wissenschaftsgeschichte','Recherche','Digitale Medien'
+  ];
+
+  // ── STATE ─────────────────────────────────────────────────────────────────
+  var rawData = [];
+  var filteredData = [];
+  var annotations = {};
+  var edits = {};
+  var globalUserTags = [];
+  var currentCardView = 'grid';
+  var currentAppView = 'lernziele';
+  var lastPromptSettings = null;
+  var lastPromptText = '';
+
+  var activeRelFilters = {};
+  var activeTagFilters = {};
+  var activeThemaFilters = {};
+  var activeMethodFilters = {};
+  var activeEvoKonzeptFilters = {};
+  var activeUserTagFilters = {};
+
+  var editingId = null;
+  var annotatingId = null;
+  var annotatingType = null;
+  var taggingId = null;
+  var importMode = 'replace';
+
+  var pgSelectedSubthemas = {};
+  var pgExcludedLZ = {};
+  var pgLzActiveFilter = 'all';
+  var pgLzActiveTagFilter = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  function init() {
+    loadLS();
+    bindStaticEvents();
+    bindPromptEvents();
+    fetchData();
+  }
+
+  function loadLS() {
+    try { annotations    = JSON.parse(localStorage.getItem(LS_ANN)   || '{}'); } catch(e){ annotations = {}; }
+    try { edits          = JSON.parse(localStorage.getItem(LS_EDIT)  || '{}'); } catch(e){ edits = {}; }
+    try { globalUserTags = JSON.parse(localStorage.getItem(LS_UTAGS) || '[]'); } catch(e){ globalUserTags = []; }
+  }
+
+  function saveLS() {
+    try { localStorage.setItem(LS_ANN,   JSON.stringify(annotations));    } catch(e){}
+    try { localStorage.setItem(LS_EDIT,  JSON.stringify(edits));          } catch(e){}
+    try { localStorage.setItem(LS_UTAGS, JSON.stringify(globalUserTags)); } catch(e){}
+  }
+
+  function getThemaDisplay(t) { return THEMA_DISPLAY[t] || t; }
+
+  // ── FETCH DATA ────────────────────────────────────────────────────────────
+  function fetchData() {
+    setLoadingText('Lernziele werden geladen…');
+    tryFetch(0);
+  }
+
+  function tryFetch(urlIdx) {
+    if (urlIdx >= DATA_URLS.length) {
+      $('loading-overlay').classList.add('hidden');
+      showDataStatus('⚠ Datei konnte nicht automatisch geladen werden. Bitte importiere die JSON-Datei manuell (⬆ Import oben).', false);
+      showToast('⚠ Bitte JSON-Datei manuell importieren', 'error');
+      return;
+    }
+    var url = DATA_URLS[urlIdx];
+    setLoadingText('Lade von Server…');
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.timeout = 15000;
+    xhr.onload = function () {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        parseAndLoad(xhr.responseText);
+      } else {
+        tryFetch(urlIdx + 1);
+      }
+    };
+    xhr.onerror   = function () { tryFetch(urlIdx + 1); };
+    xhr.ontimeout = function () { tryFetch(urlIdx + 1); };
+    xhr.send();
+  }
+
+  function parseAndLoad(text) {
+    try {
+      var json = JSON.parse(text);
+      var arr  = extractArray(json);
+      if (!arr || arr.length === 0) {
+        showDataStatus('⚠ JSON geladen aber kein Daten-Array gefunden. Bitte JSON-Datei manuell importieren.', false);
+        $('loading-overlay').classList.add('hidden');
+        showToast('⚠ Daten-Array nicht gefunden', 'error');
+        return;
+      }
+      if (json.globalUserTags && Array.isArray(json.globalUserTags)) {
+        json.globalUserTags.forEach(function(t){ if (t && globalUserTags.indexOf(t) === -1) globalUserTags.push(t); });
+      }
+      rawData = arr;
+      $('loading-overlay').classList.add('hidden');
+      $('data-status').style.display = 'none';
+      fullRebuild();
+      showToast('✓ ' + rawData.length + ' Lernziele geladen', 'success');
+    } catch (e) {
+      showDataStatus('⚠ JSON-Fehler: ' + e.message, false);
+      $('loading-overlay').classList.add('hidden');
+      showToast('⚠ JSON-Fehler: ' + e.message, 'error');
+    }
+  }
+
+  function extractArray(json) {
+    if (Array.isArray(json)) return json;
+    for (var i = 0; i < DATA_KEYS.length; i++) {
+      var k = DATA_KEYS[i];
+      if (json[k] && Array.isArray(json[k]) && json[k].length > 0) return json[k];
+    }
+    var keys = Object.keys(json);
+    for (var j = 0; j < keys.length; j++) {
+      var val = json[keys[j]];
+      if (Array.isArray(val) && val.length > 0 && val[0] && val[0].id) return val;
+    }
+    return null;
+  }
+
+  function fullRebuild() {
+    buildSidebar();
+    buildMethodFilterChips();
+    buildEvoKonzeptTree();
+    buildUserTagFilterDisplay();
+    buildPromptThemeSelector();
+    applyFilters();
+    drawChart();
+  }
+
+  function setLoadingText(msg) { var el = $('loading-text'); if (el) el.textContent = msg; }
+
+  function showDataStatus(msg, isInfo) {
+    var el = $('data-status'); if (!el) return;
+    el.textContent = msg;
+    el.className = isInfo ? 'info' : '';
+    el.style.display = 'block';
+  }
+
+  // ── SIDEBAR ───────────────────────────────────────────────────────────────
+  function buildSidebar() {
+    var themas = unique(rawData.map(function(d){ return d.thema; }));
+    var tc = $('thema-chips'); tc.innerHTML = '';
+    themas.forEach(function(t) {
+      var chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = getThemaDisplay(t);
+      chip.title = t;
+      chip.addEventListener('click', function() {
+        chip.classList.toggle('active');
+        if (activeThemaFilters[t]) delete activeThemaFilters[t]; else activeThemaFilters[t] = true;
+        applyFilters();
+      });
+      tc.appendChild(chip);
+    });
+
+    var uts = unique(rawData.map(function(d){ return d.unterthema; })).sort();
+    var us = $('unterthema-select');
+    while (us.options.length > 1) us.remove(1);
+    uts.forEach(function(u) {
+      var o = document.createElement('option'); o.value = u; o.textContent = u; us.appendChild(o);
+    });
+  }
+
+  function buildMethodFilterChips() {
+    var methodSet = {};
+    rawData.forEach(function(d) {
+      ((d.didaktische_strategien||{}).top3_methoden||[]).forEach(function(m){ if (m.methode) methodSet[m.methode] = true; });
+    });
+    var mc = $('method-chips'); mc.innerHTML = '';
+    Object.keys(methodSet).sort().forEach(function(meth) {
+      var chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.textContent = meth;
+      chip.addEventListener('click', function() {
+        chip.classList.toggle('active');
+        if (activeMethodFilters[meth]) delete activeMethodFilters[meth]; else activeMethodFilters[meth] = true;
+        applyFilters();
+      });
+      mc.appendChild(chip);
+    });
+  }
+
+  // ── EVO CONCEPT TREE (FIXED) ──────────────────────────────────────────────
+  function buildEvoKonzeptTree() {
+    // Collect all concepts present in data
+    var dataConceptSet = {};
+    rawData.forEach(function(d) {
+      var ev = d.evolutionsbezug || {};
+      (ev.relevante_evolutionskonzepte || []).forEach(function(k){ if(k) dataConceptSet[k] = true; });
+    });
+
+    // Track all concepts covered by hierarchy
+    var coveredByHierarchy = {};
+    EVO_HIERARCHY.forEach(function(g) {
+      coveredByHierarchy[g.p] = true;
+      g.c.forEach(function(c){ coveredByHierarchy[c] = true; });
+    });
+
+    var tree = $('evokonzept-tree');
+    tree.innerHTML = '';
+
+    EVO_HIERARCHY.forEach(function(group) {
+      var parentInData  = !!dataConceptSet[group.p];
+      // Children: those defined in hierarchy AND present in data
+      var childrenInData = group.c.filter(function(c){ return !!dataConceptSet[c]; });
+
+      // Skip if neither parent nor any child exists in data
+      if (!parentInData && childrenInData.length === 0) return;
+
+      var groupDiv = document.createElement('div');
+      groupDiv.className = 'evo-concept-group';
+
+      var parentRow = document.createElement('div');
+      parentRow.className = 'evo-concept-parent-row';
+
+      // Parent chip
+      var parentChip = document.createElement('span');
+      parentChip.className = 'chip';
+      parentChip.textContent = group.p;
+      parentChip.title = group.p;
+      if (!parentInData) {
+        parentChip.style.opacity = '0.5';
+        parentChip.style.cursor = 'default';
+      } else {
+        parentChip.addEventListener('click', function() {
+          parentChip.classList.toggle('active');
+          if (activeEvoKonzeptFilters[group.p]) delete activeEvoKonzeptFilters[group.p];
+          else activeEvoKonzeptFilters[group.p] = true;
+          applyFilters();
+        });
+      }
+      parentRow.appendChild(parentChip);
+
+      // Only add toggle if there are children
+      if (childrenInData.length > 0) {
+        var toggleBtn = document.createElement('button');
+        toggleBtn.className = 'evo-concept-toggle-btn';
+        toggleBtn.textContent = '▸';
+        toggleBtn.title = 'Unterkonzepte ein-/ausblenden';
+        parentRow.appendChild(toggleBtn);
+
+        var childrenDiv = document.createElement('div');
+        childrenDiv.className = 'evo-concept-children';
+
+        childrenInData.forEach(function(child) {
+          var childChip = document.createElement('span');
+          childChip.className = 'chip';
+          childChip.textContent = child;
+          childChip.title = child;
+          childChip.addEventListener('click', function() {
+            childChip.classList.toggle('active');
+            if (activeEvoKonzeptFilters[child]) delete activeEvoKonzeptFilters[child];
+            else activeEvoKonzeptFilters[child] = true;
+            applyFilters();
+          });
+          childrenDiv.appendChild(childChip);
+        });
+
+        // Toggle handler — properly scoped
+        (function(btn, children) {
+          btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var isOpen = children.classList.toggle('open');
+            btn.textContent = isOpen ? '▾' : '▸';
+          });
+        })(toggleBtn, childrenDiv);
+
+        groupDiv.appendChild(parentRow);
+        groupDiv.appendChild(childrenDiv);
+      } else {
+        groupDiv.appendChild(parentRow);
+      }
+
+      tree.appendChild(groupDiv);
+    });
+
+    // Orphan concepts not covered by hierarchy
+    Object.keys(dataConceptSet).forEach(function(k) {
+      if (!coveredByHierarchy[k]) {
+        var chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.textContent = k;
+        chip.title = k;
+        chip.addEventListener('click', function() {
+          chip.classList.toggle('active');
+          if (activeEvoKonzeptFilters[k]) delete activeEvoKonzeptFilters[k];
+          else activeEvoKonzeptFilters[k] = true;
+          applyFilters();
+        });
+        tree.appendChild(chip);
+      }
+    });
+  }
+
+  function buildUserTagFilterDisplay() {
+    var container = $('user-tag-filter-display'); container.innerHTML = '';
+    globalUserTags.forEach(function(tag) {
+      var chip = document.createElement('span');
+      chip.className = 'user-tag-filter-chip' + (activeUserTagFilters[tag] ? ' active' : '');
+      chip.innerHTML = escHtml(tag) + '<span class="remove-utag" title="Tag löschen">✕</span>';
+      chip.addEventListener('click', function(e) {
+        if (e.target.classList.contains('remove-utag')) {
+          if (!confirm('Tag "' + tag + '" global löschen?')) return;
+          globalUserTags = globalUserTags.filter(function(t){ return t !== tag; });
+          Object.keys(annotations).forEach(function(id) {
+            if (annotations[id].userTags)
+              annotations[id].userTags = annotations[id].userTags.filter(function(t){ return t !== tag; });
+          });
+          delete activeUserTagFilters[tag];
+          saveLS(); buildUserTagFilterDisplay(); applyFilters();
+        } else {
+          chip.classList.toggle('active');
+          if (activeUserTagFilters[tag]) delete activeUserTagFilters[tag];
+          else activeUserTagFilters[tag] = true;
+          applyFilters();
+        }
+      });
+      container.appendChild(chip);
+    });
+  }
+
+  function addGlobalTag(tagName) {
+    var t = tagName.trim();
+    if (!t || globalUserTags.indexOf(t) !== -1) return;
+    globalUserTags.push(t);
+    saveLS(); buildUserTagFilterDisplay(); updatePgLzTagFilters();
+    showToast('✓ Tag "' + t + '" erstellt', 'success');
+  }
+
+  // ── FILTER LABEL TOGGLES ──────────────────────────────────────────────────
+  function bindFilterToggles() {
+    setupFilterToggle('method-filter-label', 'method-chips');
+    setupFilterToggle('evokonzept-filter-label', 'evokonzept-tree');
+  }
+
+  function setupFilterToggle(labelId, targetId) {
+    var label = $(labelId), target = $(targetId);
+    if (!label || !target) return;
+    label.addEventListener('click', function() {
+      var isHidden = target.classList.toggle('hidden');
+      var arrow = label.querySelector('.toggle-arrow');
+      if (arrow) {
+        if (isHidden) arrow.style.transform = 'rotate(-90deg)';
+        else arrow.style.transform = 'rotate(0deg)';
+      }
+    });
+  }
+
+  // ── FILTERS ───────────────────────────────────────────────────────────────
+  function applyFilters() {
+    var q  = ($('search-input').value || '').toLowerCase().trim();
+    var ut = $('unterthema-select').value;
+    var sort = $('sort-select').value;
+
+    filteredData = rawData.filter(function(d) {
+      if (Object.keys(activeThemaFilters).length && !activeThemaFilters[d.thema]) return false;
+      if (ut && d.unterthema !== ut) return false;
+
+      var rel = getRelevanz(d);
+      if (Object.keys(activeRelFilters).length && !activeRelFilters[String(rel)]) return false;
+
+      if (Object.keys(activeMethodFilters).length) {
+        var methods = ((d.didaktische_strategien||{}).top3_methoden||[]).map(function(m){ return m.methode; });
+        if (!Object.keys(activeMethodFilters).every(function(mk){ return methods.indexOf(mk) !== -1; })) return false;
+      }
+
+      if (Object.keys(activeEvoKonzeptFilters).length) {
+        var ev2 = d.evolutionsbezug || {};
+        var konz = ev2.relevante_evolutionskonzepte || [];
+        var e2 = edits[d.id];
+        if (e2 && e2.konzepte) konz = e2.konzepte.split(',').map(function(s){ return s.trim(); });
+        if (!Object.keys(activeEvoKonzeptFilters).every(function(kk){ return konz.indexOf(kk) !== -1; })) return false;
+      }
+
+      var a = annotations[d.id] || {};
+      if (activeTagFilters['fav']    && !a.fav)       return false;
+      if (activeTagFilters['inc']    && !a.inc)       return false;
+      if (activeTagFilters['edited'] && !edits[d.id]) return false;
+
+      if (Object.keys(activeUserTagFilters).length) {
+        var utags = a.userTags || [];
+        if (!Object.keys(activeUserTagFilters).every(function(t){ return utags.indexOf(t) !== -1; })) return false;
+      }
+
+      if (q) {
+        var e3 = edits[d.id] || {};
+        var hay = [d.id, d.thema, d.unterthema, d.originaltext,
+          (d.evolutionsbezug||{}).wissenschaftliche_begruendung,
+          ((d.evolutionsbezug||{}).relevante_evolutionskonzepte||[]).join(' '),
+          (d.didaktische_strategien||{}).evolutionsdidaktischer_impuls,
+          e3.wiss, e3.impuls, a.favNote, a.incNote, a.notes,
+          (a.userTags||[]).join(' ')
+        ].filter(Boolean).join(' ').toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    filteredData.sort(function(a,b) {
+      if (sort === 'thema')     { var tc = a.thema.localeCompare(b.thema); return tc !== 0 ? tc : a.unterthema.localeCompare(b.unterthema); }
+      if (sort === 'rel-asc')   return getRelevanz(a) - getRelevanz(b);
+      if (sort === 'rel-desc')  return getRelevanz(b) - getRelevanz(a);
+      if (sort === 'fav-first') return ((annotations[b.id]||{}).fav?1:0) - ((annotations[a.id]||{}).fav?1:0);
+      return a.id.localeCompare(b.id);
+    });
+
+    $('result-count').textContent = filteredData.length + ' von ' + rawData.length;
+    var ec = $('export-count'); if (ec) ec.textContent = filteredData.length;
+    renderCards(q);
+    updateStats();
+  }
+
+  function getRelevanz(d) {
+    var e = edits[d.id];
+    if (e && e.relevanz) return parseInt(e.relevanz, 10);
+    return ((d.evolutionsbezug||{}).evolutionsrelevanz_beurteilung) || 1;
+  }
+
+  // ── RENDER CARDS ──────────────────────────────────────────────────────────
+  function renderCards(query) {
+    var grid = $('card-grid'), empty = $('empty-state');
+    grid.innerHTML = '';
+    if (!filteredData.length) { empty.style.display = 'block'; return; }
+    empty.style.display = 'none';
+    var frag = document.createDocumentFragment();
+    filteredData.forEach(function(d) { frag.appendChild(buildCard(d, query||'')); });
+    grid.appendChild(frag);
+  }
+
+  function hl(text, query) {
+    if (!text) return '';
+    var safe = escHtml(String(text));
+    if (!query) return safe;
+    return safe.split(new RegExp('(' + escRe(escHtml(query)) + ')', 'gi'))
+               .map(function(p,i){ return i%2===1?'<mark>'+p+'</mark>':p; }).join('');
+  }
+
+  function buildCard(d, query) {
+    var id = d.id;
+    var a  = annotations[id] || {};
+    var e  = edits[id] || {};
+    var rel= getRelevanz(d);
+    var ev = d.evolutionsbezug || {};
+    var ds = d.didaktische_strategien || {};
+    var wiss     = e.wiss    !== undefined ? e.wiss    : (ev.wissenschaftliche_begruendung || '');
+    var konzepte = e.konzepte ? e.konzepte.split(',').map(function(s){return s.trim();}) : (ev.relevante_evolutionskonzepte||[]);
+    var impuls   = e.impuls  !== undefined ? e.impuls  : (ds.evolutionsdidaktischer_impuls || '');
+    var top3     = ds.top3_methoden || [];
+    var methoden = e.methoden ? e.methoden.split('\n').filter(Boolean) : [];
+    var fehlvors = ds.moegliche_fehlvorstellungen || '';
+    var lehrplan = ds.bezug_zum_lehrplan_kontext  || '';
+    var notes    = a.notes   || '';
+    var userTags = a.userTags|| [];
+    var isEdited = !!edits[id];
+    var methFavs = a.methFavs|| {};
+
+    var card = document.createElement('div');
+    var classes = 'card';
+    if (a.fav)    classes += ' is-favorite';
+    if (a.inc)    classes += ' is-incorrect';
+    if (isEdited) classes += ' is-edited';
+    card.className = classes;
+    card.id = 'card-' + id;
+
+    var dots = [1,2,3].map(function(i){ return '<div class="rel-dot'+(i<=rel?' on':'')+'"></div>'; }).join('');
+    var konzHtml = konzepte.map(function(k){ return '<span class="concept-chip">'+hl(k,query)+'</span>'; }).join('');
+
+    var top3Html = '';
+    if (top3.length) {
+      top3Html = '<div class="method-top3">';
+      top3.forEach(function(m) {
+        var fav = methFavs[m.rang]||false;
+        top3Html += '<div class="method-item'+(fav?' method-fav':'')+'" data-id="'+id+'" data-rang="'+m.rang+'">' +
+          '<span class="method-rank">'+m.rang+'.</span>' +
+          '<div class="method-content"><div class="method-name">'+escHtml(m.methode)+'</div>' +
+          '<div class="method-desc">'+hl(m.beschreibung,query)+'</div></div>' +
+          '<span class="method-fav-star" style="color:'+(fav?'#c2185b':'var(--border)')+'">'+( fav?'★':'☆')+'</span>' +
+          '</div>';
+      });
+      top3Html += '</div>';
+    }
+
+    var legMeth = methoden.length ? methoden.map(function(m){ return '<li>'+hl(m,query)+'</li>'; }).join('') : '';
+
+    var tagHtml = '';
+    if (a.fav || a.inc || isEdited) {
+      var tb='';
+      if(a.fav) tb+='<span class="tag-badge fav">❤ Favorit</span>'+(a.favNote?'<span class="tag-annot"> '+escHtml(a.favNote)+'</span>':'');
+      if(a.inc) tb+='<span class="tag-badge inc">⚠ Fehlerhaft</span>'+(a.incNote?'<span class="tag-annot"> '+escHtml(a.incNote)+'</span>':'');
+      if(isEdited) tb+='<span class="tag-badge edited">✏ Bearbeitet</span>';
+      tagHtml='<div class="card-tags">'+tb+'</div>';
+    }
+
+    var utHtml = '<div class="card-user-tags">';
+    userTags.forEach(function(t){ utHtml+='<span class="card-user-tag">'+escHtml(t)+'<span class="rm-tag" data-id="'+id+'" data-tag="'+escHtml(t)+'">✕</span></span>'; });
+    utHtml+='<button class="add-tag-btn" data-action="tag" data-id="'+id+'">+ Tag</button></div>';
+
+    var noteSec = notes ? ('<div class="expand-section"><button class="expand-trigger">📝 Notizen <span class="expand-arrow">▾</span></button><div class="expand-content"><div class="annot-bubble">'+hl(notes,query)+'</div></div></div>') : '';
+
+    card.innerHTML =
+      '<div class="card-header">'+
+        '<span class="card-id">'+hl(id,query)+'</span>'+
+        '<div class="card-titles">'+
+          '<div class="card-thema">'+hl(getThemaDisplay(d.thema),query)+'</div>'+
+          '<div class="card-unterthema">'+hl(d.unterthema,query)+'</div>'+
+        '</div>'+
+        '<div class="card-actions">'+
+          '<button class="icon-btn fav-btn'+(a.fav?' active':'')+'" data-action="fav" data-id="'+id+'" title="Favorit">❤</button>'+
+          '<button class="icon-btn inc-btn'+(a.inc?' active':'')+'" data-action="inc" data-id="'+id+'" title="Fehlerhaft">⚠</button>'+
+          '<button class="icon-btn tag-btn" data-action="tag" data-id="'+id+'" title="Tags">🏷</button>'+
+          '<button class="icon-btn edit-btn" data-action="edit" data-id="'+id+'" title="Bearbeiten">✏</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="card-body">'+
+        '<div class="lernziel-text">'+hl(d.originaltext,query)+'</div>'+
+        '<span class="relevance-badge r'+rel+'"><div class="rel-dots">'+dots+'</div>Relevanz: '+REL_LABELS[rel]+'</span>'+
+        (konzHtml?'<div class="concept-list">'+konzHtml+'</div>':'')+
+        utHtml+
+      '</div>'+
+      '<div class="expand-section"><button class="expand-trigger">🔬 Wissenschaftlicher Evolutionsbezug <span class="expand-arrow">▾</span></button><div class="expand-content"><p>'+hl(wiss,query)+'</p></div></div>'+
+      '<div class="expand-section"><button class="expand-trigger">🎓 Didaktische Strategien <span class="expand-arrow">▾</span></button><div class="expand-content">'+
+        (impuls?'<div class="didaktik-block"><strong>Evolutionsdidaktischer Impuls</strong><p>'+hl(impuls,query)+'</p></div>':'')+
+        (top3.length?'<div class="didaktik-block"><strong>Top 3 Methoden (★ anklicken)</strong>'+top3Html+'</div>':'')+
+        (legMeth?'<div class="didaktik-block"><strong>Weitere Methoden</strong><ul>'+legMeth+'</ul></div>':'')+
+        (fehlvors?'<div class="didaktik-block"><strong>Mögliche Fehlvorstellungen</strong><p>'+hl(fehlvors,query)+'</p></div>':'')+
+        (lehrplan?'<div class="didaktik-block"><strong>Bezug zum Lehrplan</strong><p>'+escHtml(lehrplan)+'</p></div>':'')+
+      '</div></div>'+
+      noteSec+
+      tagHtml;
+    return card;
+  }
+
+  // ── CLICK DELEGATION ──────────────────────────────────────────────────────
+  document.addEventListener('click', function(evt) {
+    var t = evt.target;
+
+    // Method fav toggle
+    var mi = t.closest ? t.closest('.method-item') : null;
+    if (mi && mi.dataset.rang) {
+      var mId = mi.dataset.id, rang = parseInt(mi.dataset.rang, 10);
+      if (!annotations[mId]) annotations[mId] = {};
+      if (!annotations[mId].methFavs) annotations[mId].methFavs = {};
+      annotations[mId].methFavs[rang] = !annotations[mId].methFavs[rang];
+      saveLS();
+      var card2 = $('card-' + mId);
+      if (card2) {
+        var d2 = rawData.find(function(x){ return x.id === mId; });
+        if (d2) { var nc = buildCard(d2, ($('search-input').value||'').toLowerCase().trim()); card2.parentNode.replaceChild(nc, card2); }
+      }
+      showToast(annotations[mId].methFavs[rang] ? '★ Methode favorisiert' : '☆ Favorit entfernt', 'info');
+      return;
+    }
+
+    // rm-tag
+    if (t.classList && t.classList.contains('rm-tag')) {
+      var rId = t.dataset.id, rTag = t.dataset.tag;
+      if (annotations[rId] && annotations[rId].userTags)
+        annotations[rId].userTags = annotations[rId].userTags.filter(function(x){ return x !== rTag; });
+      saveLS(); applyFilters(); return;
+    }
+
+    // expand trigger
+    var trigger = t.closest ? t.closest('.expand-trigger') : null;
+    if (trigger && !trigger.dataset.action) {
+      trigger.classList.toggle('open');
+      var con = trigger.nextElementSibling; if (con) con.classList.toggle('open');
+      return;
+    }
+
+    // data-action
+    var btn = t.closest ? t.closest('[data-action]') : null;
+    if (btn) {
+      var act = btn.dataset.action, did = btn.dataset.id;
+      if (act === 'fav')  openAnnotModal(did, 'fav');
+      if (act === 'inc')  openAnnotModal(did, 'inc');
+      if (act === 'edit') openEditModal(did);
+      if (act === 'tag')  openTagModal(did);
+      return;
+    }
+
+    // export-opt
+    var eo = t.closest ? t.closest('.export-opt') : null;
+    if (eo) { doExport(eo.dataset.export); return; }
+
+    // modal overlay close
+    if (t.classList && t.classList.contains('modal-overlay')) t.classList.add('hidden');
+  });
+
+  // ── STATS + STACKED BAR CHART ─────────────────────────────────────────────
+  function updateStats() {
+    var counts = {1:0, 2:0, 3:0};
+    rawData.forEach(function(d){ var r = getRelevanz(d); if (counts[r] !== undefined) counts[r]++; });
+    var total  = rawData.length;
+    var favN   = Object.keys(annotations).filter(function(k){ return annotations[k].fav; }).length;
+    var incN   = Object.keys(annotations).filter(function(k){ return annotations[k].inc; }).length;
+    var editN  = Object.keys(edits).length;
+    var tagN   = Object.keys(annotations).filter(function(k){ return (annotations[k].userTags||[]).length > 0; }).length;
+
+    $('stats-detail').innerHTML =
+      '<div class="stat-row"><span>🔢 Gesamt</span><span class="stat-num">'+total+'</span></div>'+
+      '<div class="stat-row"><span>🟢 Gering</span><span class="stat-num">'+counts[1]+'</span></div>'+
+      '<div class="stat-row"><span>🟡 Mittel</span><span class="stat-num">'+counts[2]+'</span></div>'+
+      '<div class="stat-row"><span>🔴 Hoch</span><span class="stat-num">'+counts[3]+'</span></div>'+
+      '<div class="stat-row" style="margin-top:6px"><span>❤ Favoriten</span><span class="stat-num">'+favN+'</span></div>'+
+      '<div class="stat-row"><span>⚠ Fehlerhaft</span><span class="stat-num">'+incN+'</span></div>'+
+      '<div class="stat-row"><span>✏ Bearbeitet</span><span class="stat-num">'+editN+'</span></div>'+
+      '<div class="stat-row"><span>🏷 Getaggt</span><span class="stat-num">'+tagN+'</span></div>'+
+      '<div class="stat-row"><span>📋 Gefiltert</span><span class="stat-num">'+filteredData.length+'</span></div>';
+
+    updatePlannerInfo();
+    drawChart();
+  }
+
+  function updatePlannerInfo() {
+    var favIds  = Object.keys(annotations).filter(function(k){ return annotations[k].fav; });
+    var favItems = rawData.filter(function(d){ return favIds.indexOf(d.id) !== -1; });
+    $('planner-info').innerHTML = favItems.length ? '<strong>'+favItems.length+' Favoriten</strong> ausgewählt' : 'Noch keine Favoriten markiert.';
+  }
+
+  // Stacked bar chart: one bar per Thema, stacked by relevance (gering/mittel/hoch)
+  // Colors: gering=green, mittel=yellow-orange, hoch=red
+  // Legend placed to the right of bars
+  function drawChart() {
+    var canvas = $('chart-canvas');
+    if (!canvas || !canvas.getContext) return;
+    var container = canvas.parentElement;
+    var cw = container ? container.offsetWidth : 260;
+    if (cw < 10) cw = 260;
+
+    var LEGEND_W = 70;   // width reserved for legend on right
+    var PAD_LEFT  = 4;
+    var PAD_RIGHT = LEGEND_W + 6;
+    var PAD_TOP   = 8;
+    var PAD_BOT   = 38;  // space for x-axis labels
+
+    var ch = 200;
+    var dpr = window.devicePixelRatio || 1;
+    canvas.width  = cw * dpr;
+    canvas.height = ch * dpr;
+    canvas.style.width  = cw + 'px';
+    canvas.style.height = ch + 'px';
+
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, cw, ch);
+
+    if (!rawData.length) return;
+
+    var themas = unique(rawData.map(function(d){ return d.thema; }));
+    var COLORS = ['#388e3c', '#e6a817', '#c62828'];  // gering=green, mittel=yellow-orange, hoch=red
+    var LABELS = ['Gering', 'Mittel', 'Hoch'];
+
+    // Per thema, count r1, r2, r3
+    var themaCounts = themas.map(function(thema) {
+      var items = rawData.filter(function(d){ return d.thema === thema; });
+      return {
+        thema: thema,
+        r: [1,2,3].map(function(r){ return items.filter(function(d){ return getRelevanz(d) === r; }).length; })
+      };
+    });
+
+    // Max total per thema for y-axis scale
+    var maxTotal = 0;
+    themaCounts.forEach(function(tc) {
+      var s = tc.r[0] + tc.r[1] + tc.r[2];
+      if (s > maxTotal) maxTotal = s;
+    });
+    if (!maxTotal) return;
+
+    var chartAreaW = cw - PAD_LEFT - PAD_RIGHT;
+    var chartAreaH = ch - PAD_TOP - PAD_BOT;
+    var n = themas.length;
+    var groupW = chartAreaW / n;
+    var barW = Math.max(6, Math.min(22, groupW * 0.55));
+
+    // Draw bars (stacked)
+    themaCounts.forEach(function(tc, i) {
+      var x = PAD_LEFT + i * groupW + (groupW - barW) / 2;
+      var yBase = PAD_TOP + chartAreaH;  // bottom of chart area
+      var cumulative = 0;
+
+      [0, 1, 2].forEach(function(ri) {
+        var count = tc.r[ri];
+        if (count === 0) return;
+        var segH = (count / maxTotal) * chartAreaH;
+        var y = yBase - cumulative - segH;
+
+        ctx.fillStyle = COLORS[ri];
+        ctx.fillRect(x, y, barW, segH);
+
+        // Value label inside segment if tall enough
+        if (segH >= 12) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 8px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(count, x + barW / 2, y + segH / 2 + 3);
+        }
+        cumulative += segH;
+      });
+
+      // Total above bar
+      var total = tc.r[0] + tc.r[1] + tc.r[2];
+      var totalBarH = (total / maxTotal) * chartAreaH;
+      ctx.fillStyle = '#546e7a';
+      ctx.font = 'bold 8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(total, x + barW / 2, PAD_TOP + chartAreaH - totalBarH - 3);
+
+      // X-axis label
+      var label = getThemaDisplay(tc.thema);
+      if (label.length > 10) label = label.substring(0, 9) + '…';
+      ctx.fillStyle = '#607d8b';
+      ctx.font = '8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(label, PAD_LEFT + i * groupW + groupW / 2, ch - PAD_BOT + 13);
+    });
+
+    // X-axis baseline
+    ctx.strokeStyle = '#cfd8dc';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(PAD_LEFT, PAD_TOP + chartAreaH);
+    ctx.lineTo(cw - PAD_RIGHT, PAD_TOP + chartAreaH);
+    ctx.stroke();
+
+    // Legend — placed on the right side
+    var lx = cw - LEGEND_W + 4;
+    var ly = PAD_TOP + 4;
+    ctx.font = 'bold 8px sans-serif';
+    ctx.textAlign = 'left';
+    ['Gering', 'Mittel', 'Hoch'].forEach(function(lbl, i) {
+      ctx.fillStyle = COLORS[i];
+      ctx.fillRect(lx, ly + i * 18, 10, 10);
+      ctx.fillStyle = '#546e7a';
+      ctx.font = '9px sans-serif';
+      ctx.fillText(lbl, lx + 13, ly + i * 18 + 9);
+    });
+  }
+
+  // ── EDIT MODAL ────────────────────────────────────────────────────────────
+  function openEditModal(id) {
+    editingId = id;
+    var d  = rawData.find(function(x){ return x.id === id; }) || {};
+    var e  = edits[id] || {};
+    var a  = annotations[id] || {};
+    var ev = d.evolutionsbezug || {};
+    var ds = d.didaktische_strategien || {};
+    $('edit-modal-id').textContent = id;
+    $('edit-wiss').value     = e.wiss     !== undefined ? e.wiss     : (ev.wissenschaftliche_begruendung || '');
+    $('edit-konzepte').value = e.konzepte !== undefined ? e.konzepte : (ev.relevante_evolutionskonzepte||[]).join(', ');
+    $('edit-relevanz').value = e.relevanz !== undefined ? e.relevanz : (ev.evolutionsrelevanz_beurteilung || 1);
+    $('edit-impuls').value   = e.impuls   !== undefined ? e.impuls   : (ds.evolutionsdidaktischer_impuls || '');
+    $('edit-methoden').value = e.methoden !== undefined ? e.methoden : '';
+    $('edit-notes').value    = a.notes || '';
+    openModal('edit-modal');
+  }
+
+  function saveEdit() {
+    var id = editingId; if (!id) return;
+    var d  = rawData.find(function(x){ return x.id === id; }) || {};
+    var ev = d.evolutionsbezug || {};
+    var ds = d.didaktische_strategien || {};
+
+    var newVals = {
+      wiss:     $('edit-wiss').value,
+      konzepte: $('edit-konzepte').value,
+      relevanz: $('edit-relevanz').value,
+      impuls:   $('edit-impuls').value,
+      methoden: $('edit-methoden').value
+    };
+
+    // Always save all edits fields if any differ from original
+    var origWiss    = ev.wissenschaftliche_begruendung || '';
+    var origKonz    = (ev.relevante_evolutionskonzepte||[]).join(', ');
+    var origRel     = String(ev.evolutionsrelevanz_beurteilung || 1);
+    var origImpuls  = ds.evolutionsdidaktischer_impuls || '';
+
+    var hasChange = (
+      newVals.wiss     !== origWiss  ||
+      newVals.konzepte !== origKonz  ||
+      newVals.relevanz !== origRel   ||
+      newVals.impuls   !== origImpuls||
+      newVals.methoden !== ''
+    );
+
+    if (hasChange) {
+      edits[id] = newVals;
+    } else {
+      delete edits[id];
+    }
+
+    if (!annotations[id]) annotations[id] = {};
+    annotations[id].notes = $('edit-notes').value;
+
+    saveLS();
+    closeModal('edit-modal');
+    applyFilters();
+    drawChart();
+    showToast('✓ Gespeichert', 'success');
+  }
+
+  // ── TAG MODAL ─────────────────────────────────────────────────────────────
+  function openTagModal(id) {
+    taggingId = id;
+    $('tag-modal-id').textContent = id;
+    renderTagModalCurrent();
+    renderTagModalGlobalOptions();
+    $('tag-modal-new-input').value = '';
+    openModal('tag-modal');
+  }
+
+  function renderTagModalCurrent() {
+    var a = annotations[taggingId]||{}, tags = a.userTags||[];
+    var container = $('tag-modal-current'); container.innerHTML = '';
+    if (!tags.length) { container.innerHTML = '<span style="font-size:0.73rem;color:var(--text-muted)">Noch keine Tags</span>'; return; }
+    tags.forEach(function(t) {
+      var el = document.createElement('span'); el.className = 'tag-modal-tag';
+      el.innerHTML = escHtml(t) + '<span class="rm">✕</span>';
+      el.querySelector('.rm').addEventListener('click', function(){ removeUserTagFromItem(taggingId,t); renderTagModalCurrent(); renderTagModalGlobalOptions(); });
+      container.appendChild(el);
+    });
+  }
+
+  function renderTagModalGlobalOptions() {
+    var a = annotations[taggingId]||{}, cur = a.userTags||[];
+    var container = $('tag-modal-global-options'); container.innerHTML = '';
+    if (!globalUserTags.length) { container.innerHTML = '<span style="font-size:0.73rem;color:var(--text-muted)">Noch keine globalen Tags.</span>'; return; }
+    globalUserTags.forEach(function(t) {
+      var already = cur.indexOf(t) !== -1;
+      var el = document.createElement('span'); el.className = 'global-tag-option'; el.style.opacity = already ? '0.4' : '1';
+      el.textContent = (already ? '✓ ' : '+ ') + t;
+      if (!already) el.addEventListener('click', function(){ addUserTagToItem(taggingId,t); renderTagModalCurrent(); renderTagModalGlobalOptions(); });
+      container.appendChild(el);
+    });
+  }
+
+  function addUserTagToItem(id, tag) {
+    if (!annotations[id]) annotations[id] = {};
+    if (!annotations[id].userTags) annotations[id].userTags = [];
+    if (annotations[id].userTags.indexOf(tag) === -1) annotations[id].userTags.push(tag);
+    if (globalUserTags.indexOf(tag) === -1) globalUserTags.push(tag);
+    saveLS(); buildUserTagFilterDisplay(); updatePgLzTagFilters();
+  }
+
+  function removeUserTagFromItem(id, tag) {
+    if (annotations[id] && annotations[id].userTags)
+      annotations[id].userTags = annotations[id].userTags.filter(function(t){ return t !== tag; });
+    saveLS();
+  }
+
+  function saveTagModal() { closeModal('tag-modal'); applyFilters(); showToast('✓ Tags gespeichert', 'success'); }
+
+  // ── ANNOTATION MODAL ──────────────────────────────────────────────────────
+  function openAnnotModal(id, type) {
+    annotatingId   = id;
+    annotatingType = type;
+    var a = annotations[id] || {};
+    $('annot-modal-title').textContent = type === 'fav' ? '❤ Favorit markieren' : '⚠ Als fehlerhaft markieren';
+    $('annot-text').value = type === 'fav' ? (a.favNote||'') : (a.incNote||'');
+    $('annot-remove-btn').style.display = a[type] ? '' : 'none';
+    openModal('annot-modal');
+  }
+
+  function saveAnnotation() {
+    var id = annotatingId, type = annotatingType; if (!id) return;
+    if (!annotations[id]) annotations[id] = {};
+    annotations[id][type] = true;
+    var note = $('annot-text').value.trim();
+    if (type === 'fav') annotations[id].favNote = note; else annotations[id].incNote = note;
+    saveLS(); closeModal('annot-modal'); applyFilters();
+    showToast(type === 'fav' ? '❤ Favorit markiert' : '⚠ Als fehlerhaft markiert', 'info');
+  }
+
+  function removeAnnotation() {
+    var id = annotatingId, type = annotatingType;
+    if (id && annotations[id]) {
+      delete annotations[id][type];
+      if (type === 'fav') delete annotations[id].favNote; else delete annotations[id].incNote;
+    }
+    saveLS(); closeModal('annot-modal'); applyFilters(); showToast('Markierung entfernt', 'info');
+  }
+
+  // ── EXPORT ────────────────────────────────────────────────────────────────
+  // enrichItem: merges all edits INTO the item fields so the exported JSON
+  // is a complete, standalone dataset (not annotation-only).
+  function enrichItem(d) {
+    var id  = d.id;
+    var e   = edits[id] || {};
+    var a   = annotations[id] || {};
+    // Deep clone
+    var item = JSON.parse(JSON.stringify(d));
+    var ev = item.evolutionsbezug || (item.evolutionsbezug = {});
+    var ds = item.didaktische_strategien || (item.didaktische_strategien = {});
+
+    // Merge edits into main data fields
+    if (e.wiss !== undefined)     ev.wissenschaftliche_begruendung = e.wiss;
+    if (e.konzepte !== undefined) ev.relevante_evolutionskonzepte  = e.konzepte.split(',').map(function(s){ return s.trim(); });
+    if (e.relevanz !== undefined) ev.evolutionsrelevanz_beurteilung = parseInt(e.relevanz, 10);
+    if (e.impuls !== undefined)   ds.evolutionsdidaktischer_impuls = e.impuls;
+    if (e.methoden && e.methoden.trim()) {
+      // Append to or replace methods if edited
+      ds.methoden_zusatz = e.methoden.split('\n').filter(Boolean);
+    }
+
+    // Annotation block
+    item._annotation = {
+      favorit:    !!a.fav,
+      fehlerhaft: !!a.inc,
+      favNote:    a.favNote  || '',
+      incNote:    a.incNote  || '',
+      notizen:    a.notes    || '',
+      bearbeitet: !!edits[id],
+      userTags:   a.userTags || [],
+      methFavs:   a.methFavs || {}
+    };
+    return item;
+  }
+
+  function doExport(type) {
+    closeModal('export-modal');
+    var data, filename, content, mime;
+    var ts = new Date().toISOString();
+
+    var wrap = function(arr) {
+      return JSON.stringify({ exportiert: ts, globalUserTags: globalUserTags, eintraege: arr }, null, 2);
+    };
+
+    if (type === 'all') {
+      data = rawData.map(enrichItem);
+      filename = 'bio_lernziele_alle.json'; content = wrap(data); mime = 'application/json';
+    } else if (type === 'edited') {
+      data = rawData.filter(function(d){ return !!edits[d.id]; }).map(enrichItem);
+      if (!data.length) { showToast('Keine bearbeiteten Lernziele', 'error'); return; }
+      filename = 'bio_bearbeitet.json'; content = wrap(data); mime = 'application/json';
+    } else if (type === 'with-notes') {
+      data = rawData.filter(function(d){ var a=annotations[d.id]||{}; return !!(a.favNote||a.incNote||a.notes); }).map(enrichItem);
+      if (!data.length) { showToast('Keine Lernziele mit Notizen', 'error'); return; }
+      filename = 'bio_mit_notizen.json'; content = wrap(data); mime = 'application/json';
+    } else if (type === 'with-usertags') {
+      data = rawData.filter(function(d){ return ((annotations[d.id]||{}).userTags||[]).length > 0; }).map(enrichItem);
+      if (!data.length) { showToast('Keine Lernziele mit Tags', 'error'); return; }
+      filename = 'bio_mit_tags.json'; content = wrap(data); mime = 'application/json';
+    } else if (type === 'favorites') {
+      data = rawData.filter(function(d){ return (annotations[d.id]||{}).fav; }).map(enrichItem);
+      if (!data.length) { showToast('Keine Favoriten', 'error'); return; }
+      filename = 'bio_favoriten.json'; content = wrap(data); mime = 'application/json';
+    } else if (type === 'filtered') {
+      data = filteredData.map(enrichItem);
+      filename = 'bio_gefiltert.json'; content = wrap(data); mime = 'application/json';
+    } else if (type === 'csv') {
+      var hdrs = ['ID','Thema','Unterthema','Lernziel','Relevanz','Konzepte','Favorit','Fehlerhaft','UserTags','Notizen'];
+      var csvRows = rawData.map(function(d) {
+        var a = annotations[d.id]||{};
+        var ev = d.evolutionsbezug||{};
+        var e  = edits[d.id]||{};
+        var rel = getRelevanz(d);
+        var konz = e.konzepte ? e.konzepte : (ev.relevante_evolutionskonzepte||[]).join('; ');
+        return [d.id, d.thema, d.unterthema, d.originaltext, rel, konz,
+          a.fav?'Ja':'Nein', a.inc?'Ja':'Nein',
+          (a.userTags||[]).join('; '), (a.notes||a.favNote||a.incNote||'')
+        ].map(function(v){ return '"'+String(v).replace(/"/g,'""')+'"'; }).join(',');
+      });
+      filename = 'bio_lernziele.csv'; content = '\uFEFF' + hdrs.join(',') + '\n' + csvRows.join('\n'); mime = 'text/csv;charset=utf-8;';
+    } else if (type === 'markdown') {
+      var favs = rawData.filter(function(d){ return (annotations[d.id]||{}).fav; });
+      if (!favs.length) { showToast('Keine Favoriten', 'error'); return; }
+      var byT = {};
+      favs.forEach(function(d){ if(!byT[d.thema]) byT[d.thema]=[]; byT[d.thema].push(d); });
+      var md = '# Unterrichtsplan – Evolutionsbezug Biologie Gy 7/8\n\n_Erstellt: '+new Date().toLocaleDateString('de-DE')+'_\n\n';
+      Object.keys(byT).forEach(function(thema) {
+        md += '## ' + getThemaDisplay(thema) + '\n\n';
+        byT[thema].forEach(function(d) {
+          var a = annotations[d.id]||{}, rel = getRelevanz(d);
+          var relStr = ['','🟢 Gering','🟡 Mittel','🔴 Hoch'][rel] || '';
+          var ds2 = d.didaktische_strategien||{};
+          var e2  = edits[d.id]||{};
+          var impuls = e2.impuls !== undefined ? e2.impuls : (ds2.evolutionsdidaktischer_impuls||'');
+          var top3   = ds2.top3_methoden||[];
+          var mf     = a.methFavs||{};
+          md += '### ['+d.id+'] '+d.unterthema+'\n**Lernziel:** '+d.originaltext+'\n\n**Relevanz:** '+relStr+'\n\n';
+          if (impuls) md += '**Didaktischer Impuls:** '+impuls+'\n\n';
+          if (top3.length) { md += '**Empfohlene Methoden:**\n'; top3.forEach(function(m){ md += m.rang+'.'+(mf[m.rang]?' ★':'')+' **'+m.methode+'** – '+m.beschreibung+'\n'; }); md += '\n'; }
+          if (a.favNote) md += '**Notiz:** '+a.favNote+'\n\n';
+          if ((a.userTags||[]).length) md += '**Tags:** '+a.userTags.join(', ')+'\n\n';
+          md += '---\n\n';
+        });
+      });
+      filename = 'unterrichtsplan.md'; content = md; mime = 'text/markdown;charset=utf-8;';
+    } else return;
+
+    downloadFile(content, filename, mime);
+    showToast('✓ ' + filename + ' exportiert', 'success');
+  }
+
+  function downloadFile(content, filename, mime) {
+    var blob = new Blob([content], {type: mime});
+    var url  = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 500);
+  }
+
+  // ── IMPORT (ROBUST, FIXED) ────────────────────────────────────────────────
+  // Mode "replace": Replaces rawData entirely with file data + loads annotations/edits
+  // Mode "merge":   Only imports annotations/notes/tags from file, keeps existing rawData
+  function doImport() {
+    var file = $('import-file').files[0];
+    if (!file) { showToast('Keine Datei ausgewählt', 'error'); return; }
+
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        var json = JSON.parse(evt.target.result);
+
+        if (importMode === 'replace') {
+          // Full replace: extract data array AND annotations from file
+          var arr = extractArray(json);
+          if (!arr || arr.length === 0) {
+            showToast('⚠ Keine Lernziele in Datei gefunden', 'error');
+            return;
+          }
+
+          // Reset everything
+          rawData      = [];
+          annotations  = {};
+          edits        = {};
+          globalUserTags = [];
+
+          // Load global tags from file
+          if (json.globalUserTags && Array.isArray(json.globalUserTags)) {
+            json.globalUserTags.forEach(function(t){ if (t) globalUserTags.push(t); });
+          }
+
+          // Load items; extract edits and annotations from _annotation blocks
+          arr.forEach(function(item) {
+            if (!item.id) return;
+            // Store clean item (without _annotation) in rawData
+            var clean = JSON.parse(JSON.stringify(item));
+            delete clean._annotation;
+            rawData.push(clean);
+
+            // Restore edits and annotations from _annotation if present
+            if (item._annotation) {
+              var ann = item._annotation;
+              if (!annotations[item.id]) annotations[item.id] = {};
+              if (ann.favorit)              annotations[item.id].fav      = true;
+              if (ann.fehlerhaft)           annotations[item.id].inc      = true;
+              if (ann.favNote)              annotations[item.id].favNote  = ann.favNote;
+              if (ann.incNote)              annotations[item.id].incNote  = ann.incNote;
+              if (ann.notizen)              annotations[item.id].notes    = ann.notizen;
+              if (ann.userTags && ann.userTags.length) annotations[item.id].userTags = ann.userTags;
+              if (ann.methFavs && Object.keys(ann.methFavs).length) annotations[item.id].methFavs = ann.methFavs;
+              if (ann.bearbeitet) {
+                // Reconstruct edits from the enriched item data
+                var origItem = item;
+                var ev2 = origItem.evolutionsbezug || {};
+                var ds2 = origItem.didaktische_strategien || {};
+                edits[item.id] = {
+                  wiss:     ev2.wissenschaftliche_begruendung || '',
+                  konzepte: (ev2.relevante_evolutionskonzepte || []).join(', '),
+                  relevanz: String(ev2.evolutionsrelevanz_beurteilung || 1),
+                  impuls:   ds2.evolutionsdidaktischer_impuls || '',
+                  methoden: (ds2.methoden_zusatz || []).join('\n')
+                };
+              }
+            }
+          });
+
+          saveLS();
+          closeModal('import-modal');
+          $('data-status').style.display = 'none';
+
+          // Reset all active filters
+          activeRelFilters = {}; activeTagFilters = {}; activeThemaFilters = {};
+          activeMethodFilters = {}; activeEvoKonzeptFilters = {}; activeUserTagFilters = {};
+          $('search-input').value = ''; $('unterthema-select').value = '';
+
+          fullRebuild();
+          showToast('✓ ' + rawData.length + ' Lernziele geladen (neue Session)', 'success');
+
+        } else {
+          // Merge mode: only import annotations/tags/notes — do NOT change rawData
+          if (!rawData.length) {
+            showToast('⚠ Keine aktiven Lernziele. Bitte zuerst "Neue Session" verwenden.', 'error');
+            return;
+          }
+
+          var items = json.eintraege || json.evolutionsbezug_und_didaktik || extractArray(json) || [];
+          var count = 0;
+
+          if (json.globalUserTags && Array.isArray(json.globalUserTags)) {
+            json.globalUserTags.forEach(function(t){ if (t && globalUserTags.indexOf(t) === -1) globalUserTags.push(t); });
+          }
+
+          items.forEach(function(item) {
+            if (!item.id) return;
+            // Only merge annotations for IDs that exist in current rawData
+            var exists = rawData.some(function(d){ return d.id === item.id; });
+            if (!exists) return;
+
+            if (item._annotation) {
+              var ann = item._annotation;
+              if (!annotations[item.id]) annotations[item.id] = {};
+              if (ann.favorit)              annotations[item.id].fav      = true;
+              if (ann.fehlerhaft)           annotations[item.id].inc      = true;
+              if (ann.favNote)              annotations[item.id].favNote  = ann.favNote;
+              if (ann.incNote)              annotations[item.id].incNote  = ann.incNote;
+              if (ann.notizen)              annotations[item.id].notes    = ann.notizen;
+              if (ann.userTags && ann.userTags.length) {
+                if (!annotations[item.id].userTags) annotations[item.id].userTags = [];
+                ann.userTags.forEach(function(t){ if (annotations[item.id].userTags.indexOf(t) === -1) annotations[item.id].userTags.push(t); });
+              }
+              if (ann.methFavs) annotations[item.id].methFavs = ann.methFavs;
+              count++;
+            }
+          });
+
+          saveLS();
+          closeModal('import-modal');
+          buildUserTagFilterDisplay();
+          buildEvoKonzeptTree();
+          applyFilters();
+          showToast('✓ ' + count + ' Annotationen zusammengeführt', 'success');
+        }
+
+      } catch (err) {
+        showToast('⚠ Fehler: ' + err.message, 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // Preview import file info
+  function previewImportFile(file) {
+    if (!file) { $('import-preview').style.display='none'; return; }
+    var reader = new FileReader();
+    reader.onload = function(evt) {
+      try {
+        var json = JSON.parse(evt.target.result);
+        var arr  = extractArray(json);
+        var msg  = '';
+        if (arr && arr.length) {
+          msg = '📦 ' + arr.length + ' Lernziele gefunden';
+          var annCount = (arr).filter(function(i){ return i._annotation; }).length;
+          if (annCount) msg += ' · ' + annCount + ' mit Annotationen';
+        } else {
+          msg = '⚠ Kein Daten-Array gefunden';
+        }
+        if (json.exportiert) msg += '\n📅 Exportiert: ' + json.exportiert.substring(0,10);
+        $('import-preview').textContent = msg;
+        $('import-preview').style.display = 'block';
+      } catch(e) {
+        $('import-preview').textContent = '⚠ Ungültige JSON-Datei';
+        $('import-preview').style.display = 'block';
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // ── MODALS ────────────────────────────────────────────────────────────────
+  function openModal(id)  { $(id).classList.remove('hidden'); }
+  function closeModal(id) { $(id).classList.add('hidden'); }
+
+  // ── TOAST ─────────────────────────────────────────────────────────────────
+  function showToast(msg, type) {
+    var tc = $('toast-container');
+    var t  = document.createElement('div'); t.className = 'toast ' + (type||'info'); t.textContent = msg;
+    tc.appendChild(t);
+    setTimeout(function(){
+      t.style.transition = 'opacity 0.3s'; t.style.opacity = '0';
+      setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); }, 320);
+    }, 3000);
+  }
+
+  // ── UTILS ─────────────────────────────────────────────────────────────────
+  function unique(arr) { var s={}; return arr.filter(function(v){ if(s[v]) return false; s[v]=true; return true; }); }
+  function escHtml(s)  { if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function escRe(s)    { return s.replace(/[-\/\\^$*+?.()|[${}]/g,'\\$&'); }
+  function getRadioVal(gid) { var c=document.querySelectorAll('#'+gid+' .radio-chip.selected'); return c.length?c[0].getAttribute('data-val'):''; }
+  function getPctVal(gid)   { var c=document.querySelectorAll('#'+gid+' .pct-chip.selected');  return c.length?c[0].getAttribute('data-val'):''; }
+  function getCheckedVals(gid) { var v=[]; document.querySelectorAll('#'+gid+' input[type="checkbox"]:checked').forEach(function(cb){v.push(cb.value);}); return v; }
+  function getPgMethodVals() {
+    var v=[];
+    ['pg-lehrformen-recommended','pg-lehrformen-extra'].forEach(function(gid){
+      document.querySelectorAll('#'+gid+' input[type="checkbox"]:checked').forEach(function(cb){v.push(cb.value);});
+    });
+    return v;
+  }
+
+  // ── VIEW SWITCHING ────────────────────────────────────────────────────────
+  function switchView(v) {
+    currentAppView = v;
+    $('lernziele-view').classList.toggle('active', v==='lernziele');
+    $('prompt-view').classList.toggle('active',    v==='prompt');
+    $('view-lernziele-btn').classList.toggle('active-view', v==='lernziele');
+    $('view-prompt-btn').classList.toggle('active-view',    v==='prompt');
+  }
+
+  function setView(v) {
+    currentCardView = v;
+    $('card-grid').className = v==='list' ? 'list-view' : '';
+    $('btn-grid').className  = v==='grid' ? 'active' : '';
+    $('btn-list').className  = v==='list' ? 'active' : '';
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PROMPT GENERATOR
+  // ══════════════════════════════════════════════════════════════════════════
+  function buildPromptThemeSelector() {
+    var container = $('pg-theme-selector'); container.innerHTML = '';
+    var themas = unique(rawData.map(function(d){ return d.thema; }));
+    themas.forEach(function(thema) {
+      var subthemas = unique(rawData.filter(function(d){ return d.thema===thema; }).map(function(d){ return d.unterthema; }));
+      var item = document.createElement('div'); item.className = 'theme-item';
+
+      var header = document.createElement('div'); header.className = 'theme-item-header';
+      var cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'theme-check';
+      var lbl = document.createElement('span');
+      lbl.innerHTML = escHtml(getThemaDisplay(thema)) + '<span class="lz-count">' + rawData.filter(function(d){ return d.thema===thema; }).length + '</span>';
+      lbl.title = thema;
+      var expandBtn = document.createElement('button'); expandBtn.className = 'theme-expand-btn'; expandBtn.innerHTML = '▾';
+      header.appendChild(cb); header.appendChild(lbl); header.appendChild(expandBtn);
+      item.appendChild(header);
+
+      var subList = document.createElement('div'); subList.className = 'subtheme-list';
+      subthemas.forEach(function(ut) {
+        var subDiv = document.createElement('div'); subDiv.className = 'subtheme-item';
+        var subCb  = document.createElement('input'); subCb.type = 'checkbox'; subCb.id = 'pgcb-' + sanitize(ut);
+        var subLbl = document.createElement('label'); subLbl.htmlFor = subCb.id;
+        subLbl.innerHTML = escHtml(ut) + '<span class="lz-count">' + rawData.filter(function(d){ return d.unterthema===ut; }).length + '</span>';
+        subDiv.appendChild(subCb); subDiv.appendChild(subLbl); subList.appendChild(subDiv);
+
+        subCb.addEventListener('change', function() {
+          if (subCb.checked) { pgSelectedSubthemas[ut]=true; subDiv.classList.add('selected'); }
+          else               { delete pgSelectedSubthemas[ut]; subDiv.classList.remove('selected'); }
+          syncThemaCheck(thema, cb, subthemas, item);
+          onPgSelectionChange();
+        });
+      });
+      item.appendChild(subList);
+
+      cb.addEventListener('change', function() {
+        subthemas.forEach(function(ut) {
+          var sc = $('pgcb-' + sanitize(ut));
+          var sd = sc ? sc.closest('.subtheme-item') : null;
+          if (cb.checked) { pgSelectedSubthemas[ut]=true; if(sc) sc.checked=true; if(sd) sd.classList.add('selected'); }
+          else            { delete pgSelectedSubthemas[ut]; if(sc) sc.checked=false; if(sd) sd.classList.remove('selected'); }
+        });
+        item.classList.toggle('selected', cb.checked);
+        onPgSelectionChange();
+      });
+
+      expandBtn.addEventListener('click', function(e) { e.stopPropagation(); subList.classList.toggle('open'); expandBtn.classList.toggle('open'); });
+      header.addEventListener('click', function(e) {
+        if (e.target===cb || e.target===expandBtn) return;
+        subList.classList.toggle('open'); expandBtn.classList.toggle('open');
+      });
+      container.appendChild(item);
+    });
+    updatePgLzBadge();
+  }
+
+  function sanitize(s) { return s.replace(/[^a-zA-Z0-9]/g,'-').toLowerCase(); }
+
+  function syncThemaCheck(thema, cb, subthemas, item) {
+    var any = subthemas.some(function(ut){ return pgSelectedSubthemas[ut]; });
+    cb.checked = any;
+    item.classList.toggle('selected', any);
+  }
+
+  function onPgSelectionChange() {
+    updatePgLzBadge();
+    updatePgLzList();
+    updatePgEvoKonzepte();
+    updatePgMethods();
+    updatePgLzTagFilters();
+  }
+
+  function getSelectedLZ() {
+    if (!Object.keys(pgSelectedSubthemas).length) return [];
+    return rawData.filter(function(d){ return pgSelectedSubthemas[d.unterthema]; });
+  }
+
+  function getActiveLZ() {
+    return getSelectedLZ().filter(function(d){ return !pgExcludedLZ[d.id]; });
+  }
+
+  function updatePgLzBadge() {
+    var all    = getSelectedLZ();
+    var active = getActiveLZ();
+    var badge  = $('pg-lz-badge');
+    if (badge) {
+      badge.textContent = active.length + ' von ' + all.length + ' Lernzielen im Prompt';
+      badge.style.background = all.length > 0 ? 'var(--accent2-pale)' : 'var(--neutral-pale)';
+      badge.style.color      = all.length > 0 ? 'var(--accent2)'      : 'var(--text-muted)';
+    }
+    var sec = $('pg-lz-list-section');
+    if (sec) sec.style.display = all.length > 0 ? 'block' : 'none';
+  }
+
+  function updatePgLzList() {
+    var all = getSelectedLZ();
+    var container = $('pg-lz-items'); if (!container) return;
+
+    var visible = all.filter(function(d) {
+      var a   = annotations[d.id] || {};
+      var rel = getRelevanz(d);
+      if (pgLzActiveFilter === 'fav')   return !!a.fav;
+      if (pgLzActiveFilter === 'r3')    return rel === 3;
+      if (pgLzActiveFilter === 'r2')    return rel === 2;
+      if (pgLzActiveFilter === 'notes') return !!(a.favNote||a.incNote||a.notes);
+      if (pgLzActiveTagFilter)          return (a.userTags||[]).indexOf(pgLzActiveTagFilter) !== -1;
+      return true;
+    });
+
+    container.innerHTML = '';
+    if (!visible.length) {
+      container.innerHTML = '<div style="padding:10px;font-size:0.78rem;color:var(--text-muted);text-align:center">Keine Lernziele für diesen Filter.</div>';
+      return;
+    }
+
+    visible.forEach(function(d) {
+      var a      = annotations[d.id] || {};
+      var rel    = getRelevanz(d);
+      var isExcl = !!pgExcludedLZ[d.id];
+
+      var row = document.createElement('div'); row.className = 'lz-item-row' + (isExcl ? ' excluded' : '');
+      var cb  = document.createElement('input'); cb.type='checkbox'; cb.className='lz-item-check'; cb.checked=!isExcl;
+
+      var con    = document.createElement('div'); con.className = 'lz-item-content';
+      var idSpan = document.createElement('div'); idSpan.className = 'lz-item-id'; idSpan.textContent = d.id;
+      var txt    = document.createElement('div'); txt.className = 'lz-item-text'; txt.textContent = d.originaltext;
+      var badges = document.createElement('div'); badges.className = 'lz-item-badges';
+      if (a.fav) badges.innerHTML += '<span class="lz-item-badge fav">❤</span>';
+      badges.innerHTML += '<span class="lz-item-badge r'+rel+'">' + REL_LABELS[rel] + '</span>';
+      (a.userTags||[]).forEach(function(tag){ badges.innerHTML += '<span class="lz-item-badge tag">🏷'+escHtml(tag)+'</span>'; });
+
+      con.appendChild(idSpan); con.appendChild(txt); con.appendChild(badges);
+      row.appendChild(cb); row.appendChild(con);
+
+      var doToggle = function() {
+        cb.checked = !cb.checked;
+        if (cb.checked) delete pgExcludedLZ[d.id]; else pgExcludedLZ[d.id] = true;
+        row.classList.toggle('excluded', !cb.checked);
+        updatePgLzBadge();
+      };
+      cb.addEventListener('change', function(e) {
+        e.stopPropagation();
+        if (cb.checked) delete pgExcludedLZ[d.id]; else pgExcludedLZ[d.id] = true;
+        row.classList.toggle('excluded', !cb.checked);
+        updatePgLzBadge();
+      });
+      row.addEventListener('click', function(e) { if (e.target===cb) return; doToggle(); });
+      container.appendChild(row);
+    });
+  }
+
+  function updatePgLzTagFilters() {
+    var container = $('pg-lz-tag-filters'); if (!container) return;
+    container.innerHTML = '';
+    globalUserTags.forEach(function(tag) {
+      var btn = document.createElement('span');
+      btn.className = 'lz-filter-btn' + (pgLzActiveTagFilter===tag ? ' active' : '');
+      btn.textContent = '🏷 ' + tag;
+      btn.addEventListener('click', function() {
+        if (pgLzActiveTagFilter === tag) {
+          pgLzActiveTagFilter = null; pgLzActiveFilter = 'all';
+          document.querySelectorAll('#pg-lz-filter-bar .lz-filter-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.lzfilter==='all'); });
+        } else {
+          pgLzActiveTagFilter = tag; pgLzActiveFilter = null;
+          document.querySelectorAll('#pg-lz-filter-bar .lz-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+        }
+        updatePgLzTagFilters();
+        updatePgLzList();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  function updatePgEvoKonzepte() {
+    var lz = getSelectedLZ(), cset = {};
+    lz.forEach(function(d) {
+      var ev = d.evolutionsbezug || {};
+      var e2 = edits[d.id] || {};
+      var k  = e2.konzepte ? e2.konzepte.split(',').map(function(s){ return s.trim(); }) : (ev.relevante_evolutionskonzepte||[]);
+      k.forEach(function(x){ if(x) cset[x]=true; });
+    });
+    var container = $('pg-evo-konzepte'); if (!container) return;
+    container.innerHTML = '';
+    if (!Object.keys(cset).length) {
+      container.innerHTML = '<span style="font-size:0.78rem;color:var(--text-muted)">Bitte zuerst Lernziele auswählen.</span>';
+      return;
+    }
+    Object.keys(cset).sort().forEach(function(k) {
+      var lbl = document.createElement('label'); lbl.className = 'check-item';
+      var cb  = document.createElement('input'); cb.type='checkbox'; cb.value=k;
+      var span= document.createElement('span'); span.textContent=k;
+      lbl.appendChild(cb); lbl.appendChild(span); container.appendChild(lbl);
+    });
+  }
+
+  function normalizeMethod(raw) {
+    var map = {
+      'forschendes lernen':'Forschendes Lernen','konzeptuelles lernen':'Konzeptuelles Lernen',
+      'kooperative lernformen':'Kooperative Lernformen','projektbasiertes lernen':'Projektbasiertes Lernen',
+      'erfahrungsbasiertes lernen':'Erfahrungsbasiertes Lernen','diskussion':'Diskussion',
+      'narrativer zugang':'Narrativer Zugang','analogien und vergleiche':'Analogien und Vergleiche',
+      'modelle und simulationen':'Modelle und Simulationen',
+      'einblick in wissenschaftsgeschichte':'Einblick in Wissenschaftsgeschichte',
+      'recherche':'Recherche','digitale medien':'Digitale Medien'
+    };
+    return map[raw.toLowerCase().trim()] || raw;
+  }
+
+  function updatePgMethods() {
+    var lz = getSelectedLZ(), freq = {};
+    lz.forEach(function(d) {
+      ((d.didaktische_strategien||{}).top3_methoden||[]).forEach(function(m) {
+        if (m.methode) { var n=normalizeMethod(m.methode); freq[n]=(freq[n]||0)+1; }
+      });
+    });
+    var rec   = $('pg-lehrformen-recommended');
+    var extra = $('pg-lehrformen-extra');
+    if (!rec || !extra) return;
+    rec.innerHTML = ''; extra.innerHTML = '';
+
+    var recMethods   = Object.keys(freq).sort(function(a,b){ return freq[b]-freq[a]; });
+    var extraMethods = ALL_METHODS.filter(function(m){ return !freq[m]; });
+
+    if (!recMethods.length) {
+      rec.innerHTML = '<span style="font-size:0.78rem;color:var(--text-muted)">Bitte zuerst Lernziele auswählen.</span>';
+    } else {
+      recMethods.forEach(function(m){ rec.appendChild(makeCheckItem(m, m + ' (' + freq[m] + '×)')); });
+    }
+    extraMethods.forEach(function(m){ extra.appendChild(makeCheckItem(m, m)); });
+  }
+
+  function makeCheckItem(val, label) {
+    var lbl  = document.createElement('label'); lbl.className = 'check-item';
+    var cb   = document.createElement('input'); cb.type='checkbox'; cb.value=val;
+    var span = document.createElement('span'); span.textContent=label;
+    lbl.appendChild(cb); lbl.appendChild(span); return lbl;
+  }
+
+  // ── PROMPT GENERATOR EVENTS ───────────────────────────────────────────────
+  function bindPromptEvents() {
+    // Range slider
+    var range = $('pg-num-lessons'), val = $('pg-num-lessons-val');
+    if (range && val) range.addEventListener('input', function(){ val.textContent = range.value; });
+
+    // Radio chips
+    document.querySelectorAll('.radio-group .radio-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        var group = chip.closest('.radio-group');
+        group.querySelectorAll('.radio-chip').forEach(function(c){ c.classList.remove('selected'); });
+        chip.classList.add('selected');
+        if (group.id === 'pg-stunden-format')
+          $('pg-format-other-wrap').style.display = chip.dataset.val==='other' ? 'block' : 'none';
+      });
+    });
+
+    // Pct chips
+    document.querySelectorAll('.pct-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        var group = chip.closest('.pct-group');
+        group.querySelectorAll('.pct-chip').forEach(function(c){ c.classList.remove('selected'); });
+        chip.classList.add('selected');
+      });
+    });
+
+    // LZ filter bar
+    document.querySelectorAll('#pg-lz-filter-bar .lz-filter-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('#pg-lz-filter-bar .lz-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+        btn.classList.add('active');
+        pgLzActiveFilter    = btn.dataset.lzfilter;
+        pgLzActiveTagFilter = null;
+        document.querySelectorAll('#pg-lz-tag-filters .lz-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+        updatePgLzList();
+      });
+    });
+
+    // LZ list toggle
+    var lzToggle = $('pg-lz-list-toggle'), lzBody = $('pg-lz-list-body');
+    if (lzToggle && lzBody) {
+      lzToggle.addEventListener('click', function() {
+        lzBody.style.display = lzBody.style.display === 'none' ? 'block' : 'none';
+      });
+    }
+
+    $('pg-generate-btn').addEventListener('click',    generatePrompt);
+    $('pg-regenerate-btn').addEventListener('click',  generatePrompt);
+
+    // Copy prompt
+    $('pg-copy-btn').addEventListener('click', function() {
+      var text = $('prompt-preview').textContent;
+      if (!text || $('prompt-preview').classList.contains('empty')) { showToast('Bitte zuerst Prompt generieren','error'); return; }
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function(){ showToast('✓ Prompt kopiert!','success'); });
+      } else {
+        var ta = document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        showToast('✓ Prompt kopiert!','success');
+      }
+    });
+
+    // Export prompt data as JSON (settings + decomposed prompt)
+    $('pg-export-prompt-btn').addEventListener('click', function() {
+      if (!lastPromptSettings) { showToast('Bitte zuerst Prompt generieren','error'); return; }
+      exportPromptData();
+    });
+
+    // Reset prompt generator
+    $('pg-reset-btn').addEventListener('click', function() {
+      if (!confirm('Alle Prompt-Einstellungen zurücksetzen?')) return;
+
+      // Reset radio groups to first option
+      document.querySelectorAll('.radio-group').forEach(function(g) {
+        var chips = g.querySelectorAll('.radio-chip');
+        chips.forEach(function(c){ c.classList.remove('selected'); });
+        if (chips.length) chips[0].classList.add('selected');
+      });
+
+      // Reset pct groups to middle
+      document.querySelectorAll('.pct-group').forEach(function(g) {
+        var chips = g.querySelectorAll('.pct-chip');
+        chips.forEach(function(c){ c.classList.remove('selected'); });
+        var mid = chips[Math.floor(chips.length/2)];
+        if (mid) mid.classList.add('selected');
+      });
+
+      // Uncheck all checkboxes in dynamic sections
+      ['pg-evo-konzepte','pg-lehrformen-recommended','pg-lehrformen-extra','pg-differenzierung','pg-bewertung','pg-kontext'].forEach(function(id) {
+        var el = $(id); if (el) el.querySelectorAll('input[type="checkbox"]').forEach(function(cb){ cb.checked=false; });
+      });
+
+      // Re-check output format defaults
+      ['sequenzplan','methoden','transferfragen'].forEach(function(v) {
+        var el = document.querySelector('#pg-ausgabe-typ input[value="'+v+'"]'); if (el) el.checked=true;
+      });
+
+      // Reset range
+      $('pg-num-lessons').value = 4; $('pg-num-lessons-val').textContent = '4';
+
+      // Clear textareas
+      ['pg-fach-notizen','pg-did-notizen','pg-eval-notizen','pg-kontext-notizen','pg-sonstige-notizen','pg-vorwissen-notiz'].forEach(function(id){ if($(id)) $(id).value=''; });
+
+      $('pg-format-other-wrap').style.display = 'none';
+      $('pg-output-wrap').style.display       = 'none';
+
+      // Reset theme/subtheme selections
+      pgSelectedSubthemas = {}; pgExcludedLZ = {};
+      document.querySelectorAll('.theme-check').forEach(function(cb){ cb.checked=false; });
+      document.querySelectorAll('.subtheme-item input[type="checkbox"]').forEach(function(cb){ cb.checked=false; });
+      document.querySelectorAll('.theme-item,.subtheme-item').forEach(function(el){ el.classList.remove('selected'); });
+
+      lastPromptSettings = null; lastPromptText = '';
+      onPgSelectionChange();
+      showToast('↺ Prompt-Generator zurückgesetzt','info');
+    });
+  }
+
+  // ── GENERATE PROMPT ───────────────────────────────────────────────────────
+  function generatePrompt() {
+    var activeLZ = getActiveLZ();
+    if (!activeLZ.length) {
+      showToast('⚠ Bitte mindestens ein Thema / Lernziel auswählen','error');
+      $('pg-output-wrap').style.display = 'none';
+      return;
+    }
+
+    // Collect all settings
+    var klasse       = getRadioVal('pg-klasse') || '7-8';
+    var klasseLabel  = {'7':'Klasse 7','8':'Klasse 8','7-8':'Klassen 7–8'}[klasse] || klasse;
+    var numLessons   = parseInt($('pg-num-lessons').value, 10);
+    var formatVal    = getRadioVal('pg-stunden-format');
+    var formatLabel  = formatVal==='other' ? (($('pg-format-other').value||'?')+' Min.') : (formatVal+' Min.');
+    var vorwissen    = getRadioVal('pg-vorwissen');
+    var vorwNotiz    = $('pg-vorwissen-notiz').value.trim();
+    var evoPct       = getPctVal('pg-evo-pct') || '50';
+    var evoKonzepte  = getCheckedVals('pg-evo-konzepte');
+    var fachNotizen  = $('pg-fach-notizen').value.trim();
+    var lehrformen   = getPgMethodVals();
+    var differenz    = getCheckedVals('pg-differenzierung');
+    var didNotizen   = $('pg-did-notizen').value.trim();
+    var bewertung    = getCheckedVals('pg-bewertung');
+    var evalNotizen  = $('pg-eval-notizen').value.trim();
+    var kontexte     = getCheckedVals('pg-kontext');
+    var kontNotizen  = $('pg-kontext-notizen').value.trim();
+    var ausgabeTyp   = getCheckedVals('pg-ausgabe-typ');
+    var ausgabeTon   = getRadioVal('pg-ausgabe-ton');
+    var ausgabeLaenge= getRadioVal('pg-ausgabe-laenge');
+    var sonstiges    = $('pg-sonstige-notizen').value.trim();
+
+    // Group LZ by thema/unterthema
+    var byThema = {};
+    activeLZ.forEach(function(d) {
+      if (!byThema[d.thema]) byThema[d.thema] = {};
+      if (!byThema[d.thema][d.unterthema]) byThema[d.thema][d.unterthema] = [];
+      byThema[d.thema][d.unterthema].push(d);
+    });
+
+    var favLZ     = activeLZ.filter(function(d){ return (annotations[d.id]||{}).fav; });
+    var highRelLZ = activeLZ.filter(function(d){ return getRelevanz(d)===3; });
+    var favMethods = [];
+    activeLZ.forEach(function(d) {
+      var mf = (annotations[d.id]||{}).methFavs || {};
+      ((d.didaktische_strategien||{}).top3_methoden||[]).forEach(function(m){ if(mf[m.rang]) favMethods.push(m.methode+' ['+d.id+']'); });
+    });
+
+    // Label maps
+    var vorwissensLabels = {
+      keins:      'Die Lerngruppe hat noch kein Vorwissen zur Evolutionsbiologie.',
+      grundlagen: 'Die Lerngruppe kennt Grundbegriffe der Evolution.',
+      solide:     'Die Lerngruppe verfügt über solides Grundwissen zur Evolution.'
+    };
+    var bewertungsNames = {
+      formativ:'Formative Beurteilung (laufend)',quiz:'Quiz',
+      praesentation:'Präsentationen, Poster, Flyer',reflexion:'Schriftliche Reflexion',
+      portfolio:'Portfolio / Lerntagebuch',klassenarbeit:'Klassenarbeit / LEK',
+      praktisch:'Praktische Leistungen'
+    };
+    var kontextNames = {
+      biodiversitaet:'Biodiversitätskrise',naturschutz:'Naturschutz und Arterhaltung',
+      klimawandel:'Klimawandel und Artenanpassung',pandemie:'Pandemien und Virusevolution',
+      gesundheit:'Gesundheit und evolutionäre Medizin',
+      antibiotikaresistenz:'Antibiotikaresistenz als Evolution in Echtzeit',
+      psychisch:'Psychische Gesundheit',landwirtschaft:'Landwirtschaft und Lebensmittelherstellung',
+      biotechnologie:'Biotechnologie und Gentechnik'
+    };
+    var ausgabeTypNames = {
+      sequenzplan:'Vollständige Unterrichtssequenz mit Stundenverlaufsplänen',
+      lernziele:'Operationalisierte Lernziele pro Stunde',
+      methoden:'Methodische Vorschläge und Aufgabenideen pro Stunde',
+      materialien:'Hinweise auf Materialien / Medien',
+      fehlvorstellungen:'Übersicht häufiger Schülerfehlvorstellungen',
+      differenzierung:'Differenzierungsvorschläge',
+      transferfragen:'Transfer- und Diskussionsfragen',
+      querverbindungen:'Querverbindungen zwischen Lernzielen'
+    };
+    var tonLabels    = { akademisch:'akademisch-fachwissenschaftlich', professionell:'professionell und lehrkorientiert', praxisnah:'praxisnah und direkt umsetzbar' };
+    var laengeLabels = { kurz:'kompakten', mittel:'ausführlichen', lang:'sehr ausführlichen' };
+
+    // Build prompt lines
+    var sections = {};
+    var L = [], push = function(s){ L.push(s !== undefined ? s : ''); };
+
+    // Section: header
+    var headerLines = [];
+    headerLines.push('═══════════════════════════════════════════════════════════════');
+    headerLines.push('KI-UNTERRICHTSPLANUNGSAUFTRAG: EVOLUTIONSBIOLOGIE');
+    headerLines.push('Thüringer Lehrplan Biologie · Gymnasium · ' + klasseLabel);
+    headerLines.push('Erstellt: ' + new Date().toLocaleDateString('de-DE') + ' · ' + activeLZ.length + ' Lernziele');
+    headerLines.push('═══════════════════════════════════════════════════════════════');
+    headerLines.push('');
+    headerLines.push('ROLLE: Du bist Experte für Biologiedidaktik mit Schwerpunkt Evolutionsbiologie');
+    headerLines.push('und konzeptuelles Lernen am Gymnasium. Du kennst den Thüringer Lehrplan Biologie');
+    headerLines.push('Gy 7–8 und planst Unterricht, der echtes konzeptuelles Verständnis evolutionärer');
+    headerLines.push('Prinzipien aufbaut.');
+    sections['header'] = headerLines.join('\n');
+    headerLines.forEach(function(l){ push(l); });
+
+    // Section 1: Planungsrahmen
+    push('');
+    var s1Lines = [];
+    s1Lines.push('━━━ 1. PLANUNGSRAHMEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    s1Lines.push('• Klassenstufe:       ' + klasseLabel);
+    s1Lines.push('• Unterrichtsstunden: ' + numLessons + ' Stunden à ' + formatLabel);
+    s1Lines.push('• Evolutionsbezug:    ' + evoPct + '% der Unterrichtszeit');
+    s1Lines.push('');
+    s1Lines.push('LERNGRUPPE – VORWISSEN:');
+    s1Lines.push(vorwissensLabels[vorwissen] || '');
+    if (vorwNotiz) s1Lines.push('Weitere Angaben: ' + vorwNotiz);
+    s1Lines.push('');
+    s1Lines.push('━━━ FORMAT FÜR STUNDENVERLAUFSPLÄNE ━━━━━━━━━━━━━━━━━━━━━━━━━');
+    s1Lines.push('Tabellarische Verlaufspläne mit Spalten:');
+    s1Lines.push('  Zeit (Min) | Didaktische Funktion | Teilziele | Unterrichtsmittel |');
+    s1Lines.push('  Lehrertätigkeit | Schülertätigkeit');
+    s1Lines.push('');
+    s1Lines.push('Didaktische Funktionen:');
+    s1Lines.push('  Motivation · Zielangabe/Zielorientierung · Erarbeitung · Teilvermittlung');
+    s1Lines.push('  Festigung · Transfer · Übergabe · Ergebnisermittlung/-bewertung · Reflexion · Aussicht');
+    s1Lines.push('');
+    s1Lines.push('Operatoren (Thüringer LP Biologie) für Teilziele und Schülertätigkeiten:');
+    s1Lines.push('  ableiten · abschätzen · analysieren · angeben/nennen · aufstellen ·');
+    s1Lines.push('  auswerten · begründen · berechnen · beschreiben · beurteilen ·');
+    s1Lines.push('  bewerten · darstellen · diskutieren · erklären · erläutern ·');
+    s1Lines.push('  ermitteln · herleiten · interpretieren/deuten · ordnen · planen ·');
+    s1Lines.push('  skizzieren · untersuchen · vergleichen · zeichnen');
+    s1Lines.push('');
+    s1Lines.push('Format: Teilziele → "Die Schüler:innen [Operator] …"');
+    s1Lines.push('        Lehrertätigkeiten → "Die Lehrkraft …"');
+    s1Lines.push('        Schülertätigkeiten → "Die Schüler:innen [Operator] … [Sozialform]"');
+    sections['section1_planungsrahmen'] = s1Lines.join('\n');
+    s1Lines.forEach(function(l){ push(l); });
+
+    // Section 2: Lernziele
+    push('');
+    var s2Lines = [];
+    s2Lines.push('━━━ 2. LERNZIELE (Thüringer Lehrplan) ━━━━━━━━━━━━━━━━━━━━━━━');
+    s2Lines.push('❤ = Favorit der Lehrkraft (besonders tief behandeln)');
+    s2Lines.push('');
+    Object.keys(byThema).forEach(function(thema) {
+      s2Lines.push('▶ ' + getThemaDisplay(thema).toUpperCase() + ' (' + thema + ')');
+      Object.keys(byThema[thema]).forEach(function(ut) {
+        var list = byThema[thema][ut];
+        s2Lines.push('  ┌ Unterthema: ' + ut + ' (' + list.length + ' LZ)');
+        list.forEach(function(d, idx) {
+          var a   = annotations[d.id] || {};
+          var e2  = edits[d.id] || {};
+          var ev  = d.evolutionsbezug || {};
+          var ds  = d.didaktische_strategien || {};
+          var rel = getRelevanz(d);
+          var relStr = ['','🟢','🟡','🔴'][rel] || '';
+          var marker = a.fav ? '  │ ❤ ' : '  │   ';
+          s2Lines.push(marker + '[' + d.id + '] ' + d.originaltext);
+          s2Lines.push('  │   Relevanz: ' + relStr + ' ' + REL_LABELS[rel]);
+          var konz = e2.konzepte ? e2.konzepte.split(',').map(function(s){ return s.trim(); }) : (ev.relevante_evolutionskonzepte||[]);
+          if (konz.length) s2Lines.push('  │   Konzepte: ' + konz.join(' · '));
+          var wiss = e2.wiss !== undefined ? e2.wiss : (ev.wissenschaftliche_begruendung||'');
+          if (wiss) s2Lines.push('  │   Bezug: ' + (wiss.length>280 ? wiss.substring(0,280)+'…' : wiss));
+          var impuls = e2.impuls !== undefined ? e2.impuls : (ds.evolutionsdidaktischer_impuls||'');
+          if (impuls) s2Lines.push('  │   Leitfrage: ' + impuls);
+          var fehlvors = ds.moegliche_fehlvorstellungen || '';
+          if (fehlvors) s2Lines.push('  │   Fehlvorstellung: ' + fehlvors);
+          var top3 = ds.top3_methoden || [], mf = a.methFavs || {};
+          if (top3.length) s2Lines.push('  │   Methoden: ' + top3.map(function(m){ return (mf[m.rang]?'★':m.rang+'.')+' '+m.methode; }).join(' | '));
+          if (a.fav && a.favNote) s2Lines.push('  │   💬 Lehrernotiz: "' + a.favNote + '"');
+          if (a.notes) s2Lines.push('  │   📝 "' + a.notes + '"');
+          if ((a.userTags||[]).length) s2Lines.push('  │   🏷 Tags: ' + a.userTags.join(', '));
+          if (idx < list.length-1) s2Lines.push('  │');
+        });
+        s2Lines.push('  └──────────────────────────────────────────────────────');
+        s2Lines.push('');
+      });
+    });
+    s2Lines.push('ZUSAMMENFASSUNG: ' + activeLZ.length + ' LZ aus ' + Object.keys(byThema).length + ' Themen');
+    if (favLZ.length)     s2Lines.push('❤ Favoriten (' + favLZ.length + '): ' + favLZ.map(function(d){ return d.id; }).join(', '));
+    if (highRelLZ.length) s2Lines.push('🔴 Hohe Relevanz (' + highRelLZ.length + '): ' + highRelLZ.slice(0,10).map(function(d){ return d.id; }).join(', ') + (highRelLZ.length>10?' …':''));
+    if (favMethods.length) s2Lines.push('★ Favorisierte Methoden: ' + favMethods.slice(0,8).join(', '));
+    sections['section2_lernziele'] = s2Lines.join('\n');
+    s2Lines.forEach(function(l){ push(l); });
+
+    // Section 3: Evolutionskonzepte
+    var s3Lines = [];
+    if (evoKonzepte.length) {
+      push('');
+      s3Lines.push('━━━ 3. EVOLUTIONSKONZEPTE SCHWERPUNKT ━━━━━━━━━━━━━━━━━━━━━━');
+      evoKonzepte.forEach(function(k){ s3Lines.push('  → ' + k); });
+      s3Lines.push('');
+      s3Lines.push('WICHTIG: Als kohärentes Erklärungsframework vermitteln, nicht als isolierte Fakten.');
+    }
+    if (fachNotizen) {
+      s3Lines.push('');
+      s3Lines.push('FACHLICHE SCHWERPUNKTE DER LEHRKRAFT:');
+      s3Lines.push(fachNotizen);
+    }
+    sections['section3_evokonzepte'] = s3Lines.join('\n');
+    s3Lines.forEach(function(l){ push(l); });
+
+    // Section 4: Didaktische Methoden
+    var s4Lines = [];
+    if (lehrformen.length) {
+      push('');
+      s4Lines.push('━━━ 4. DIDAKTISCHE METHODEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      s4Lines.push('Bevorzugte Methoden:');
+      lehrformen.forEach(function(k){ s4Lines.push('  → ' + k); });
+    }
+    if (differenz.length) {
+      s4Lines.push('');
+      s4Lines.push('Differenzierung:');
+      differenz.forEach(function(d2){ s4Lines.push('  → ' + d2); });
+    }
+    if (didNotizen) {
+      s4Lines.push('');
+      s4Lines.push('DIDAKTISCHE HINWEISE:');
+      s4Lines.push(didNotizen);
+    }
+    sections['section4_methoden'] = s4Lines.join('\n');
+    s4Lines.forEach(function(l){ push(l); });
+
+    // Section 5: Evaluation
+    var s5Lines = [];
+    if (bewertung.length) {
+      push('');
+      s5Lines.push('━━━ 5. EVALUATION ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      bewertung.forEach(function(b){ s5Lines.push('  → ' + (bewertungsNames[b]||b)); });
+      if (evalNotizen) { s5Lines.push(''); s5Lines.push('Weitere Hinweise: ' + evalNotizen); }
+    }
+    sections['section5_evaluation'] = s5Lines.join('\n');
+    s5Lines.forEach(function(l){ push(l); });
+
+    // Section 6: Gesellschaftliche Bezüge
+    var s6Lines = [];
+    if (kontexte.length || kontNotizen) {
+      push('');
+      s6Lines.push('━━━ 6. GESELLSCHAFTLICHE BEZÜGE ━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      kontexte.forEach(function(k){ s6Lines.push('  → ' + (kontextNames[k]||k)); });
+      if (kontNotizen) { s6Lines.push(''); s6Lines.push('Weitere Hinweise: ' + kontNotizen); }
+    }
+    sections['section6_gesellschaft'] = s6Lines.join('\n');
+    s6Lines.forEach(function(l){ push(l); });
+
+    // Section 7: Ausgabeanforderungen
+    push('');
+    var s7Lines = [];
+    s7Lines.push('━━━ 7. ANFORDERUNGEN AN DIE KI-AUSGABE ━━━━━━━━━━━━━━━━━━━━━');
+    s7Lines.push('Stil: ' + (tonLabels[ausgabeTon]||ausgabeTon) + ' · Umfang: ' + (laengeLabels[ausgabeLaenge]||ausgabeLaenge));
+    s7Lines.push('Sprache: AUSSCHLIESSLICH DEUTSCH');
+    s7Lines.push('');
+    if (ausgabeTyp.length) {
+      s7Lines.push('Die Antwort soll enthalten:');
+      ausgabeTyp.forEach(function(t){ s7Lines.push('  ✓ ' + (ausgabeTypNames[t]||t)); });
+      s7Lines.push('');
+    }
+    s7Lines.push('PFLICHTBESTANDTEILE:');
+    s7Lines.push('');
+    s7Lines.push('1. ÜBERBLICK: Titel, didaktische Leitidee, übergeordnetes Lernziel,');
+    s7Lines.push('   Stundenübersicht, konzeptueller roter Faden');
+    s7Lines.push('');
+    s7Lines.push('2. PRO STUNDE: Tabellarischer Verlaufsplan (Spalten s.o.),');
+    s7Lines.push('   Kernaufgabe, Bezug zu Lehrplan-IDs, Verbindung zur Vor-/Folgestunde');
+    s7Lines.push('');
+    s7Lines.push('3. KONZEPTUELLE VERNETZUNG: Übersicht Evolutionskonzepte;');
+    s7Lines.push('   Querverbindungen; 2–3 "Big Questions" durch die Reihe');
+    s7Lines.push('');
+    s7Lines.push('4. FEHLVORSTELLUNGEN: Aus LZ-Beschreibungen; Diagnose-Aufgaben;');
+    s7Lines.push('   Conceptual Change; teleologisches Denken, Lamarckismus');
+    s7Lines.push('');
+    s7Lines.push('5. TRANSFER: ≥2 Transferfragen pro Einheit; Diskussionsaufgabe;');
+    s7Lines.push('   abschließende integrierende Aufgabe');
+    s7Lines.push('');
+    if (favLZ.length) {
+      s7Lines.push('6. FAVORITEN (❤) BESONDERS AUSFÜHRLICH:');
+      favLZ.forEach(function(d) {
+        var a = annotations[d.id] || {};
+        s7Lines.push('   ❤ [' + d.id + '] ' + d.originaltext);
+        if (a.favNote) s7Lines.push('     → "' + a.favNote + '"');
+      });
+      s7Lines.push('   → Je Favorit: mindestens eine vollständige Stunde mit Vertiefungsaufgaben');
+    }
+    if (sonstiges) {
+      s7Lines.push('');
+      s7Lines.push('━━━ WEITERE HINWEISE ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      s7Lines.push(sonstiges);
+    }
+    s7Lines.push('');
+    s7Lines.push('━━━ QUALITÄTSKRITERIEN ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    s7Lines.push('✓ Evolution als Erklärungsframework, nicht als Faktenliste');
+    s7Lines.push('✓ Einfache Konzepte zuerst → Grundlage für komplexere');
+    s7Lines.push('✓ Phänomene / kognitive Leitfragen als Stundeneinstiege');
+    s7Lines.push('✓ Querverbindungen explizit, nicht dem Zufall überlassen');
+    s7Lines.push('✓ Alle LZ-IDs aus der Liste vollständig abgedeckt');
+    s7Lines.push('✓ Realistische Zeitplanung für ' + klasseLabel + ' mit Puffern');
+    s7Lines.push('✓ Operatoren aus Thüringer LP Biologie für alle Teilziele');
+    s7Lines.push('');
+    s7Lines.push('═══════════════════════════════════════════════════════════════');
+    s7Lines.push('BITTE BEGINNE JETZT MIT DER VOLLSTÄNDIGEN UNTERRICHTSPLANUNG.');
+    s7Lines.push('Verwende klare Überschriften und Markdown-Tabellen.');
+    s7Lines.push('═══════════════════════════════════════════════════════════════');
+    sections['section7_ausgabe'] = s7Lines.join('\n');
+    s7Lines.forEach(function(l){ push(l); });
+
+    var promptText = L.join('\n');
+    lastPromptText = promptText;
+
+    // Store settings snapshot for export
+    lastPromptSettings = {
+      generiert:        new Date().toISOString(),
+      klassenstufe:     klasseLabel,
+      anzahl_stunden:   numLessons,
+      stundenformat:    formatLabel,
+      evolutionsanteil: evoPct + '%',
+      vorwissen:        vorwissen,
+      vorwissen_notiz:  vorwNotiz,
+      evo_konzepte:     evoKonzepte,
+      lehrformen:       lehrformen,
+      differenzierung:  differenz,
+      bewertung:        bewertung,
+      gesellschaft:     kontexte,
+      ausgabe_typ:      ausgabeTyp,
+      ausgabe_ton:      ausgabeTon,
+      ausgabe_laenge:   ausgabeLaenge,
+      fach_notizen:     fachNotizen,
+      did_notizen:      didNotizen,
+      eval_notizen:     evalNotizen,
+      kontext_notizen:  kontNotizen,
+      sonstige_notizen: sonstiges,
+      ausgewaehlte_lz:  activeLZ.map(function(d){ return { id:d.id, thema:d.thema, unterthema:d.unterthema, text:d.originaltext, relevanz:getRelevanz(d), favorit:!!(annotations[d.id]||{}).fav }; }),
+      ausgeschlossene_lz: Object.keys(pgExcludedLZ)
+    };
+
+    var wrap = $('pg-output-wrap'), preview = $('prompt-preview');
+    wrap.style.display = 'block';
+    preview.className  = '';
+    preview.textContent= promptText;
+    wrap.scrollIntoView({ behavior:'smooth', block:'start' });
+    showToast('✓ Prompt generiert (' + promptText.length + ' Zeichen)', 'success');
+  }
+
+  // ── EXPORT PROMPT DATA ────────────────────────────────────────────────────
+  function exportPromptData() {
+    if (!lastPromptSettings) { showToast('Kein Prompt generiert', 'error'); return; }
+
+    // Decompose the full prompt text by section markers for research analysis
+    var fullText = lastPromptText;
+    var sectionMarkers = [
+      { key: 'planungsrahmen',   marker: '━━━ 1. PLANUNGSRAHMEN' },
+      { key: 'lernziele',        marker: '━━━ 2. LERNZIELE' },
+      { key: 'evokonzepte',      marker: '━━━ 3. EVOLUTIONSKONZEPTE' },
+      { key: 'methoden',         marker: '━━━ 4. DIDAKTISCHE METHODEN' },
+      { key: 'evaluation',       marker: '━━━ 5. EVALUATION' },
+      { key: 'gesellschaft',     marker: '━━━ 6. GESELLSCHAFTLICHE' },
+      { key: 'ausgabe',          marker: '━━━ 7. ANFORDERUNGEN' },
+      { key: 'qualitaet',        marker: '━━━ QUALITÄTSKRITERIEN' }
+    ];
+
+    var decomposed = {};
+    var lines = fullText.split('\n');
+    var currentKey = 'header';
+    var currentLines = [];
+
+    lines.forEach(function(line) {
+      var matched = false;
+      sectionMarkers.forEach(function(sm) {
+        if (line.indexOf(sm.marker) !== -1) {
+          decomposed[currentKey] = currentLines.join('\n').trim();
+          currentKey   = sm.key;
+          currentLines = [line];
+          matched = true;
+        }
+      });
+      if (!matched) currentLines.push(line);
+    });
+    decomposed[currentKey] = currentLines.join('\n').trim();
+
+    var exportObj = {
+      meta: {
+        tool:       'Evolutionsbezug Biologie – Thüringen Gymnasium 7/8',
+        version:    '2.0',
+        exportiert: new Date().toISOString(),
+        zweck:      'Forschungsanalyse KI-Prompt Generator'
+      },
+      prompt_einstellungen: lastPromptSettings,
+      prompt_volltext: lastPromptText,
+      prompt_nach_abschnitt: decomposed,
+      statistik: {
+        gesamtzeichen:   lastPromptText.length,
+        gesamtzeilen:    lastPromptText.split('\n').length,
+        lernziele_total: lastPromptSettings.ausgewaehlte_lz.length,
+        favoriten:       lastPromptSettings.ausgewaehlte_lz.filter(function(l){ return l.favorit; }).length,
+        hoch_relevant:   lastPromptSettings.ausgewaehlte_lz.filter(function(l){ return l.relevanz===3; }).length
+      }
+    };
+
+    var content  = JSON.stringify(exportObj, null, 2);
+    var filename = 'prompt_daten_' + new Date().toISOString().substring(0,10) + '.json';
+    downloadFile(content, filename, 'application/json');
+    showToast('✓ Prompt-Daten exportiert', 'success');
+  }
+
+  // ── STATIC EVENTS ─────────────────────────────────────────────────────────
+  function bindStaticEvents() {
+    $('view-lernziele-btn').addEventListener('click', function(){ switchView('lernziele'); });
+    $('view-prompt-btn').addEventListener('click',    function(){ switchView('prompt'); });
+
+    $('sidebar-toggle-btn').addEventListener('click', function() {
+      var sb = $('sidebar');
+      if (window.innerWidth <= 760) sb.classList.toggle('mobile-open');
+      else                          sb.classList.toggle('collapsed');
+    });
+
+    // Sidebar section toggles
+    document.querySelectorAll('.sidebar-header').forEach(function(hdr) {
+      hdr.addEventListener('click', function() {
+        var target = hdr.dataset.target;
+        if (!target) return;
+        var el = $(target); if (!el) return;
+        var isHidden = el.classList.toggle('hidden');
+        var icon = hdr.querySelector('.toggle-icon');
+        if (icon) icon.style.transform = isHidden ? 'rotate(-90deg)' : 'rotate(0deg)';
+      });
+    });
+
+    // Filter toggles for method and evokonzept
+    bindFilterToggles();
+
+    $('search-input').addEventListener('input', applyFilters);
+    $('unterthema-select').addEventListener('change', applyFilters);
+    $('sort-select').addEventListener('change', applyFilters);
+
+    // Relevance filter chips
+    document.querySelectorAll('#rel-chips .chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        chip.classList.toggle('active');
+        var r = chip.dataset.rel;
+        if (activeRelFilters[r]) delete activeRelFilters[r]; else activeRelFilters[r] = true;
+        applyFilters();
+      });
+    });
+
+    // Tag filter chips
+    document.querySelectorAll('#tag-chips .chip').forEach(function(chip) {
+      chip.addEventListener('click', function() {
+        chip.classList.toggle('active');
+        var tag = chip.dataset.tag;
+        if (activeTagFilters[tag]) delete activeTagFilters[tag]; else activeTagFilters[tag] = true;
+        applyFilters();
+      });
+    });
+
+    // Global user tag creation
+    $('global-tag-add-btn').addEventListener('click', function() {
+      var val = $('global-tag-input').value.trim();
+      if (val) { addGlobalTag(val); $('global-tag-input').value = ''; }
+    });
+    $('global-tag-input').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { var val=$('global-tag-input').value.trim(); if(val){ addGlobalTag(val); $('global-tag-input').value=''; } }
+    });
+
+    $('clear-filters-btn').addEventListener('click', function() {
+      activeRelFilters={}; activeTagFilters={}; activeThemaFilters={}; activeMethodFilters={}; activeEvoKonzeptFilters={}; activeUserTagFilters={};
+      document.querySelectorAll('.chip.active').forEach(function(c){ c.classList.remove('active'); });
+      document.querySelectorAll('.user-tag-filter-chip.active').forEach(function(c){ c.classList.remove('active'); });
+      document.querySelectorAll('#evokonzept-tree .chip.active').forEach(function(c){ c.classList.remove('active'); });
+      $('search-input').value=''; $('unterthema-select').value='';
+      applyFilters();
+    });
+
+    $('expand-all-btn').addEventListener('click', function() {
+      document.querySelectorAll('.expand-trigger').forEach(function(tr){ tr.classList.add('open'); var c=tr.nextElementSibling; if(c) c.classList.add('open'); });
+    });
+    $('collapse-all-btn').addEventListener('click', function() {
+      document.querySelectorAll('.expand-trigger').forEach(function(tr){ tr.classList.remove('open'); var c=tr.nextElementSibling; if(c) c.classList.remove('open'); });
+    });
+
+    $('print-btn').addEventListener('click', function(){ window.print(); });
+    $('btn-grid').addEventListener('click', function(){ setView('grid'); });
+    $('btn-list').addEventListener('click', function(){ setView('list'); });
+
+    // Export modal
+    $('export-open-btn').addEventListener('click', function() {
+      var ec = $('export-count'); if (ec) ec.textContent = filteredData.length;
+      openModal('export-modal');
+    });
+    $('export-close-btn').addEventListener('click', function(){ closeModal('export-modal'); });
+
+    // Import modal
+    $('import-open-btn').addEventListener('click', function(){ openModal('import-modal'); });
+    $('import-close-btn').addEventListener('click', function(){ closeModal('import-modal'); });
+    $('import-cancel-btn').addEventListener('click', function(){ closeModal('import-modal'); });
+
+    // Import mode selection
+    $('import-opt-replace').addEventListener('click', function() {
+      importMode = 'replace';
+      $('import-opt-replace').classList.add('selected');
+      $('import-opt-merge').classList.remove('selected');
+    });
+    $('import-opt-merge').addEventListener('click', function() {
+      importMode = 'merge';
+      $('import-opt-merge').classList.add('selected');
+      $('import-opt-replace').classList.remove('selected');
+    });
+
+    // File preview on selection
+    $('import-file').addEventListener('change', function() {
+      previewImportFile(this.files[0]);
+    });
+
+    $('import-save-btn').addEventListener('click', doImport);
+
+    // Reset all
+    $('reset-all-btn').addEventListener('click', function() {
+      if (!confirm('Alle Markierungen, Bearbeitungen und Tags zurücksetzen?')) return;
+      annotations={}; edits={}; globalUserTags=[];
+      saveLS(); buildUserTagFilterDisplay(); buildEvoKonzeptTree(); applyFilters(); drawChart();
+      showToast('↺ Alle Daten zurückgesetzt','info');
+    });
+
+    // Edit modal
+    $('edit-close-btn').addEventListener('click',  function(){ closeModal('edit-modal'); });
+    $('edit-cancel-btn').addEventListener('click', function(){ closeModal('edit-modal'); });
+    $('edit-save-btn').addEventListener('click',   saveEdit);
+
+    // Annotation modal
+    $('annot-close-btn').addEventListener('click',  function(){ closeModal('annot-modal'); });
+    $('annot-cancel-btn').addEventListener('click', function(){ closeModal('annot-modal'); });
+    $('annot-save-btn').addEventListener('click',   saveAnnotation);
+    $('annot-remove-btn').addEventListener('click', removeAnnotation);
+
+    // Tag modal
+    $('tag-close-btn').addEventListener('click',  function(){ closeModal('tag-modal'); });
+    $('tag-cancel-btn').addEventListener('click', function(){ closeModal('tag-modal'); });
+    $('tag-save-btn').addEventListener('click',   saveTagModal);
+    $('tag-modal-add-btn').addEventListener('click', function() {
+      var val = $('tag-modal-new-input').value.trim(); if (!val) return;
+      addGlobalTag(val); addUserTagToItem(taggingId,val); $('tag-modal-new-input').value='';
+      renderTagModalCurrent(); renderTagModalGlobalOptions();
+    });
+    $('tag-modal-new-input').addEventListener('keydown', function(e) {
+      if (e.key==='Enter') {
+        var val=$('tag-modal-new-input').value.trim(); if(!val) return;
+        addGlobalTag(val); addUserTagToItem(taggingId,val); $('tag-modal-new-input').value='';
+        renderTagModalCurrent(); renderTagModalGlobalOptions();
+      }
+    });
+
+    // Planner export
+    $('export-plan-btn').addEventListener('click', function(){ doExport('markdown'); });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        ['edit-modal','annot-modal','tag-modal','export-modal','import-modal'].forEach(function(id){
+          if (!$(id).classList.contains('hidden')) closeModal(id);
+        });
+      }
+      if ((e.ctrlKey||e.metaKey) && e.key==='f' && currentAppView==='lernziele') {
+        e.preventDefault(); $('search-input').focus();
+      }
+    });
+
+    window.addEventListener('resize', function() { if (rawData.length) drawChart(); });
+  }
+
+  // ── BOOT ──────────────────────────────────────────────────────────────────
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); }
+  else { init(); }
+
+})();
+</script>
+</body>
+</html>
